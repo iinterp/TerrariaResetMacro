@@ -1,6 +1,16 @@
 version := 1.0
 author := "interp"
 
+url := ""
+
+whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+whr.Open("GET", url, false)
+whr.Send()
+status := whr.status
+if (status != 200)
+   throw Exception("Failed to download data, status: " . status)
+MsgBox, % xml := whr.responseText
+
 #SingleInstance Force
 CoordMode, Mouse, Client
 
