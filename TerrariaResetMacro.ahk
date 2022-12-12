@@ -763,12 +763,13 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	sendMouse(2, 3.6, 220) ;singleplayer
 	}
 	if (charExist != "") {
-	sendMouse(1.46, 2.88) ;delete character
-	sendMouse(2, 2.5, 175) ;delete character
+	sendMouse(1.46, 2.88, 50) ;delete character
+	sendMouse(2, 2.5, 200) ;delete character
 	}
-	sendMouse(1.66, 1.08, 150) ;new character
-	if (charDifficulty != 1) { ;classic is pre selected
-		if (charDifficulty = 4) {
+	sendMouse(1.66, 1.08, 200) ;new character
+
+		if (charDifficulty != 1 || worldDifficulty = 4) { ;classic is pre selected
+		if (charDifficulty = 4 || worldDifficulty = 4) { ;override and select journey if world difficulty is journey
 			sendMouse(2.44, 2.3) ;journey
 		} else if (charDifficulty = 2) {
 			sendMouse(2.44, 2) ;mediumcore
@@ -786,8 +787,8 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	}
 	sendMouse(1.72, 1.7) ;create
 	paste(charName)
-	sendKey("enter", 1, 125)
-	sendMouse(3.15, 2.88, 175) ;select character
+	sendKey("enter", 1, 150)
+	sendMouse(3.15, 2.88, 200) ;select character
 	if (multiplayer = 1 && host = 0) {
 		sendKey("z", 1,, "^")
 		paste(IP)
@@ -797,7 +798,7 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	}
 	if (worldExist != "") {
 	sendMouse(1.46, 2.9) ;delete world
-	sendMouse(2, 2.5, 175) ;delete world
+	sendMouse(2, 2.5, 200) ;delete world
 	}
 	sendMouse(1.66, 1.08, 200) ;new world
 	if (worldEvil != 1) { ;random is pre selected
@@ -810,9 +811,14 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	if (worldDifficulty != 1 && charDifficulty != 4) { ;classic is preselected & journey is preselected for journey characters ;world difficulty / J = 2.5 / C = 2.15 / E = 1.85 / M = 1.65
 		if (worldDifficulty = 2) {
 			sendMouse(1.85, 2.45) ;expert
-		} else {
+		} 
+		if (worldDifficulty = 3) {
 			sendMouse(1.65, 2.45) ;master
 		}
+		if (worldDifficulty = 4) {
+			sendMouse(2.55, 2.45)
+		}
+
 	}
 
 	if (worldSize = 1 && downpatch != 1) { ;small is preselected on downpatch
@@ -831,7 +837,7 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	if (worldName != "") {
 	sendMouse(2, 3.9) ;world name
 	paste(worldName)
-	sendKey("enter", 1, 100)
+	sendKey("enter", 1, 150)
 	}
 	sendMouse(1.72, 1.7) ;create
 	sendMouse(2, 2)
@@ -893,8 +899,8 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	sendKey("down") ;move to back
 	sendKey("right") ;move to new
 	sendKey("space", 1, 200) ;new
-	if (charDifficulty != 1) {
-		if (charDifficulty = 4) {
+	if (charDifficulty != 1 || worldDifficulty = 4) { ;classic is preselected
+		if (charDifficulty = 4 || worldDifficulty = 4) { ;override and select journey if world difficulty is journey
 			sendKey("up", 4)
 			sendKey("space")
 			if (charStyle = 0) {
