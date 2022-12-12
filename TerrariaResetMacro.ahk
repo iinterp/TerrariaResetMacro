@@ -1,25 +1,8 @@
-version := 1.0
+global version := 0.9
 author := "interp"
 
 #SingleInstance Force
 CoordMode, Mouse, Client
-
-updateChecker(version)
-
-updateChecker(version) {
-whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/version.txt?token=GHSAT0AAAAAABUHL5PEJCUBI2GE76NJKJJAY4W7CSA", true)
-whr.Send()
-whr.WaitForResponse()
-status := whr.status
-newVersion := whr.responseText
-
-if (newVersion !> version) {
-	return
-	}
-UrlDownloadToFile, https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/TerrariaResetMacro.ahk?token=GHSAT0AAAAAABUHL5PEXON3YFNDQ7GZPMKKY4W773A, %A_ScriptName%
-Reload
-}
 
 global resetKeybind
 global passthrough
@@ -40,6 +23,11 @@ global join
 global terrariaFolder
 global IP
 global moveFiles
+global ignoreThisUpdate
+global remindMeLater
+global downloadUpdate
+global ignoredVersion
+global changelogLink
 
 FileDelete, resets/session.txt
 
@@ -56,6 +44,7 @@ iniRead, waitMultiplier, settings.ini, macro, waitMultiplier, 1.0
 iniRead, keyWait, settings.ini, macro, keyWait, 25
 iniRead, moveFiles, settings.ini, macro, moveFiles, 1
 iniRead, resetMode, settings.ini, macro, resetMode, Mouse
+iniRead, ignoredVersion, settings.ini, macro, ignoredVersion
 
 iniRead, charName, settings.ini, character, charName, TOTALRESETS
 iniRead, charDifficulty, settings.ini, character, charDifficulty, 1
@@ -246,6 +235,10 @@ Gui, Main:New
 Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%version%
 Gui, Show, AutoSize Center, Terraria Reset Macro
 OnMessage(0x0200, "WM_MOUSEMOVE")
+
+if (checkedForUpdate != 1) {
+	updateChecker()
+}
 Return
 
 WM_MOUSEMOVE()
@@ -262,7 +255,7 @@ WM_MOUSEMOVE()
 
     DisplayToolTip:
     SetTimer, DisplayToolTip, Off
-    ToolTip % %CurrControl%_TT  ; The leading percent sign tell it to use an expression.
+    ToolTip % %CurrControl%_TT
 		return
 }
 
@@ -569,8 +562,9 @@ SB_SetText("IP set to " IP)
 Return
 
 Settings:
-Gui, Destroy
-Gui, Settings:New
+;Gui, Destroy
+Gui, Settings:New, +OwnerMain
+Gui, Main:+Disabled
 
 Gui, Add, GroupBox, h110 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough xs+15 yp+22 checked%passthrough%, Keybind passthrough
@@ -615,11 +609,12 @@ goto Hotkey
 Return
 
 SettingsSave:
+Gui, Main:-Disabled
 Gui, Submit
 iniWrite, %passthrough%, settings.ini, macro, passthrough
 iniWrite, %downpatch%, settings.ini, macro, downpatch
 SB_SetText("Updated Settings")
-Goto OpenConfig
+;Goto OpenConfig
 Return
 
 ShowOnStart:
@@ -670,7 +665,50 @@ if (moveFiles = 2) {
 }
 ExitApp
 
-
+updateChecker() {
+	global checkedForUpdate := 1
+	
+	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/version.txt?token=GHSAT0AAAAAABUHL5PEOPGY645COFD5CEUSY4XDP4Q", true)
+	whr.Send()
+	whr.WaitForResponse()
+	global newVersion := whr.responseText
+	if (newVersion !> version || newVersion = ignoredVersion) {
+		Return
+	}
+		Gui, Updater:New, +OwnerMain
+			Gui, Add, Text,, There is a new update available.
+			Gui, Add, Text,center, v%version% > v%newVersion%
+			Gui, Add, Link, vchangelogLink, <a href="%changelogLink%">changelog</a>
+			Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
+			Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
+			Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
+			Gui, Updater:Show, Autosize Center, Update Checker
+			Gui, Main:+Disabled
+		Return
+	
+		IgnoreThisUpdate:
+		ignoredVersion := newVersion
+		iniWrite, %ignoredVersion%, settings.ini, macro, ignoredVersion
+		Gui, Main:-Disabled
+		Gui, Updater:Submit
+		Return
+	
+		RemindMeLater:
+		Gui, Main:-Disabled
+		Gui, Updater:Submit
+		Return
+	
+		DownloadUpdate:
+		UrlDownloadToFile, https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/TerrariaResetMacro.ahk?token=GHSAT0AAAAAABUHL5PEARCY62MOL2GR6LKEY4XACPA, %A_ScriptName%
+		if (ErrorLevel != 0) {
+			msgbox Failed to download update.
+			}
+		Gui, Main:-Disabled
+		Gui, Updater:Submit
+		;Reload
+		Return
+}
 
 
 
