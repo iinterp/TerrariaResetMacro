@@ -61,6 +61,9 @@ iniRead, host, settings.ini, multiplayer, host, 1
 iniRead, terrariaFolder, settings.ini, multiplayer, terrariaFolder, C:\Program Files (x86)\Steam\steamapps\common\Terraria
 iniRead, IP, settings.ini, multiplayer, IP, %A_Space%
 
+FileRead, totalResets, resets/total.txt
+sessionResets := 0
+
 if (charStyle!=0 && charStyle!=1) {
 	charStylePaste := charStyle
 }
@@ -669,7 +672,7 @@ updateChecker() {
 	global checkedForUpdate := 1
 	
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/version.txt?token=GHSAT0AAAAAABUHL5PEOPGY645COFD5CEUSY4XDP4Q", true)
+	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/version.txt", true)
 	whr.Send()
 	whr.WaitForResponse()
 	global newVersion := whr.responseText
@@ -679,7 +682,9 @@ updateChecker() {
 		Gui, Updater:New, +OwnerMain
 			Gui, Add, Text,, There is a new update available.
 			Gui, Add, Text,center, v%version% > v%newVersion%
-			Gui, Add, Link, vchangelogLink, <a href="%changelogLink%">changelog</a>
+			if (changeloglink != "") {
+				Gui, Add, Link, vchangelogLink, <a href="%changelogLink%">changelog</a>
+			}
 			Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
 			Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
 			Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
@@ -700,13 +705,13 @@ updateChecker() {
 		Return
 	
 		DownloadUpdate:
-		UrlDownloadToFile, https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/TerrariaResetMacro.ahk?token=GHSAT0AAAAAABUHL5PEARCY62MOL2GR6LKEY4XACPA, %A_ScriptName%
+		UrlDownloadToFile, https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/TerrariaResetMacro.ahk, %A_ScriptName%
 		if (ErrorLevel != 0) {
 			msgbox Failed to download update.
 			}
 		Gui, Main:-Disabled
 		Gui, Updater:Submit
-		;Reload
+		Reload
 		Return
 }
 
@@ -737,10 +742,8 @@ reset%resetMode%(charName, worldName, charExist, worldExist)
 Return
 
 resetMouse(charName, worldName, charExist, worldExist) {
-	totalResets := resetCount("total")
-	sessionResets := resetCount("session")
-	FileRead, totalResets, resets/total.txt
-	FileRead, sessionResets, resets/session.txt
+	global totalResets := resetCount("total")
+	global sessionResets := resetCount("session")
 	charName := StrReplace(charName, "TOTALRESETS", totalResets)
 	charName := StrReplace(charName, "SESSIONRESETS", sessionResets)
 	worldName := StrReplace(worldName, "TOTALRESETS", totalResets)
@@ -1059,7 +1062,7 @@ resetCount(resetType) {
 	num++
 	fileDelete, %filePath%
 	fileAppend, %num%, %filePath%
-	return
+	return num
 }
 
 splitCleanup() {
