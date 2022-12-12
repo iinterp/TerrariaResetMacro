@@ -858,27 +858,6 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "TOTALRESETS", totalResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
 
-	if (multiplayer = 1 && host = "server") {
-		WinClose, Terraria Server
-		Run, %terrariaFolder%/start-server-steam-friends.bat,%terrariaFolder%,, serverPID
-		sleep, 1000
-		WinActivate, ahk_exe Terraria.exe
-		sleep, 4000
-		ControlSend,, d 1{enter}, ahk_pid %serverPID%
-		ControlSend,, y{enter}, ahk_pid %serverPID%
-		ControlSend,, n{enter}, ahk_pid %serverPID%
-		ControlSend,, %worldSize%{enter}, ahk_pid %serverPID%
-		ControlSend,, %worldDifficulty%{enter}, ahk_pid %serverPID%
-		ControlSend,, %worldEvil%{enter}, ahk_pid %serverPID%
-		ControlSend,, %worldName%{enter}, ahk_pid %serverPID%
-		ControlSend,, %worldSeed%{enter}, ahk_pid %serverPID%
-		ControlSend,, 1{enter}, ahk_pid %serverPID%
-		ControlSend,, {enter}, ahk_pid %serverPID%
-		ControlSend,, {enter}, ahk_pid %serverPID%
-		ControlSend,, y{enter}, ahk_pid %serverPID%
-		ControlSend,, {enter}, ahk_pid %serverPID%
-	}
-
 	if (multiplayer = 1) {
 		sendKey("down") ;move to multiplayer
 		sendKey("space")
@@ -888,7 +867,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	} else {
 	sendKey("up") ;move to single player
 	}
-	sendKey("space", 1, 120) ;single player
+	sendKey("space", 1, 120) ;select
 	if (charExist != "") {
 	sendKey("right", 4) ;move to delete char
 	sendKey("space", 2, 100) ;delete char
@@ -951,6 +930,8 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	sendKey("up", 1, 100) ;select char
 	sendKey("space", 1, 100) ;select char
 	if (multiplayer = 1 && host = 0) {
+		sendKey("z", 1,, "^")
+		paste(IP)
 		sendKey("enter", 2)
 	} else {
 		if (worldExist != "") {
@@ -1033,15 +1014,15 @@ paste(paste, times:=1, wait:="") {
 		keyWait := keyWaitOld
 	}
 }
-sendKey(key, times:=1, wait:="") {
+sendKey(key, times:=1, wait:="", modifier:="") {
 	if (wait != "") {
 	keyWaitOld := keyWait
 	keyWait := wait * waitMultiplier
 	}
 	loop, %times% {
-		send, {%key% down}
+		send, %modifier%{%key% down}
 		sleep, %keyDuration%
-		send, {%key% up}
+		send, %modifier%{%key% up}
 		sleep, %keyWait%
 	}
 	if (wait != "") {
