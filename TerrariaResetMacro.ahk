@@ -849,10 +849,8 @@ GetClientSize(hWnd, ByRef w := "", ByRef h := "")
 
 
 ResetKeyboard(charName, worldName, charExist, worldExist) {
-	totalResets := resetCount(total)
-	sessionResets := resetCount(session)
-	FileRead, totalResets, resets/total.txt
-	FileRead, sessionResets, resets/session.txt
+	global totalResets := resetCount("total")
+	global sessionResets := resetCount("session")
 	charName := StrReplace(charName, "TOTALRESETS", totalResets)
 	charName := StrReplace(charName, "SESSIONRESETS", sessionResets)
 	worldName := StrReplace(worldName, "TOTALRESETS", totalResets)
