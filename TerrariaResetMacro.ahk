@@ -748,8 +748,16 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	charName := StrReplace(charName, "SESSIONRESETS", sessionResets)
 	worldName := StrReplace(worldName, "TOTALRESETS", totalResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
-
+	if (multiplayer = 1) {
+		sendMouse(2, 2.95)
+		if (host) {
+			sendMouse(2, 2.05, 220)
+		} else {
+			sendMouse(2, 3.2, 220)
+		}
+	} else {
 	sendMouse(2, 3.6, 220) ;singleplayer
+	}
 	if (charExist != "") {
 	sendMouse(1.46, 2.88) ;delete character
 	sendMouse(2, 2.5, 175) ;delete character
@@ -776,6 +784,12 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	paste(charName)
 	sendKey("enter", 1, 125)
 	sendMouse(3.15, 2.88, 175) ;select character
+	if (multiplayer = 1 && host = 0) {
+		sendKey("z", 1,, "^")
+		paste(IP)
+		sendKey("enter", 2)
+		return
+	}
 	if (worldExist != "") {
 	sendMouse(1.46, 2.9) ;delete world
 	sendMouse(2, 2.5, 175) ;delete world
@@ -931,70 +945,70 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		sendKey("z", 1,, "^")
 		paste(IP)
 		sendKey("enter", 2)
-	} else {
-		if (worldExist != "") {
-		sendKey("right", 5) ;delete world
-		sendKey("space", 1, 65) ;delete world
-		sendKey("space", 1, 115) ;delete world
-		}
-		sendKey("down") ;move to back
-		sendKey("right") ;move to new
-		sendKey("space", 1, 160) ;open world
-		sendKey("up") ;move to crimson
-		if (worldEvil = 2) {
-			sendKey("left")
-			sendKey("space") ;select corruption
-			sendKey("right")
-		} else if (worldEvil = 3) {
-			sendKey("space", 1) ;select crimson
-			}
-		sendKey("up")
-		if (worldDifficulty != 1 && charDifficulty != 4) {
-			if (worldDifficulty = 2) {
-				sendKey("left")
-				sendKey("space")
-				sendKey("right")
-			}
-			if (worldDifficulty = 3) {
-				sendKey("space")
-			}
-		}
-		sendKey("up")
-		if (worldSize = 3) {
-			sendKey("space")
-		}
-		if (worldSize = 2 && downpatch = 1)
-		{
-			sendKey("left")
-			sendKey("space")
-		}
-		sendKey("up") ;move to seed
-		if (worldSeed != "") {
-			sendKey("space")
-			paste(worldSeed)
-			sendKey("enter", 1, 60)
-		}
-		if (worldName != "") {
-			sendKey("up")
-			sendKey("space")
-			paste(worldName)
-			sendKey("enter")
-			sendKey("down")
-		}
-		sendKey("down") ;move to small
-		if (worldSize = 1 && downpatch = 0) {
-			sendKey("space") ;select small
-		}
-			if (worldDifficulty = 4 && charDifficulty = 4) {
-				sendKey("down")
-				sendKey("space")
-				sendKey("down", 2)
-			} else {
-			sendKey("down", 3) ;move to back
-			}
-		sendKey("right") ;move to create
-		sendKey("space") ;create world
+		return
 	}
+	if (worldExist != "") {
+	sendKey("right", 5) ;delete world
+	sendKey("space", 1, 65) ;delete world
+	sendKey("space", 1, 115) ;delete world
+	}
+	sendKey("down") ;move to back
+	sendKey("right") ;move to new
+	sendKey("space", 1, 160) ;open world
+	sendKey("up") ;move to crimson
+	if (worldEvil = 2) {
+		sendKey("left")
+		sendKey("space") ;select corruption
+		sendKey("right")
+	} else if (worldEvil = 3) {
+		sendKey("space", 1) ;select crimson
+		}
+	sendKey("up")
+	if (worldDifficulty != 1 && charDifficulty != 4) {
+		if (worldDifficulty = 2) {
+			sendKey("left")
+			sendKey("space")
+			sendKey("right")
+		}
+		if (worldDifficulty = 3) {
+			sendKey("space")
+		}
+	}
+	sendKey("up")
+	if (worldSize = 3) {
+		sendKey("space")
+	}
+	if (worldSize = 2 && downpatch = 1)
+	{
+		sendKey("left")
+		sendKey("space")
+	}
+	sendKey("up") ;move to seed
+	if (worldSeed != "") {
+		sendKey("space")
+		paste(worldSeed)
+		sendKey("enter", 1, 60)
+	}
+	if (worldName != "") {
+		sendKey("up")
+		sendKey("space")
+		paste(worldName)
+		sendKey("enter")
+		sendKey("down")
+	}
+	sendKey("down") ;move to small
+	if (worldSize = 1 && downpatch = 0) {
+		sendKey("space") ;select small
+	}
+		if (worldDifficulty = 4 && charDifficulty = 4) {
+			sendKey("down")
+			sendKey("space")
+			sendKey("down", 2)
+		} else {
+		sendKey("down", 3) ;move to back
+		}
+	sendKey("right") ;move to create
+	sendKey("space") ;create world
 }
 paste(paste, times:=1, wait:="") {
 	if (wait != "") {
