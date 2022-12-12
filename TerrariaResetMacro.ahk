@@ -569,7 +569,7 @@ Settings:
 Gui, Settings:New, +OwnerMain
 Gui, Main:+Disabled
 
-Gui, Add, GroupBox, h110 w170 Center Section, Settings
+Gui, Add, GroupBox, h140 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough xs+15 yp+22 checked%passthrough%, Keybind passthrough
 	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
 	Gui, Add, Checkbox, vdownpatch xs+15 yp+22 checked%downpatch%, Downpatched (<v1.4.4)
@@ -578,7 +578,9 @@ Gui, Add, GroupBox, h110 w170 Center Section, Settings
 	showOnStart_TT := "Whether the macro GUI shows on start. The GUI can be opened at any time from the tray icon."
 	Gui, Add, Checkbox, vmoveFiles xs+15 yp+22 checked%moveFiles%, Move files
 	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
-Gui, Add, GroupBox, h100 w170 Section Center xs ys+120, Resets
+	Gui, Add, Checkbox, vclearServers xs+15 yp+22 checked%clearServers%, Clear server history
+	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)"
+Gui, Add, GroupBox, h100 w170 Section Center xs ys+150, Resets
 	Gui, Add, Text, xs+15 yp+22 vtotalResetsText, Total Resets: %totalResets%
 	Gui, Add, Text, xp yp+22 vsessionResetsText, Session Resets: %sessionResets%
 	Gui, Add, Button, xp yp+22 vwipeResets gWipeResets w140 h25, Wipe Resets
@@ -617,7 +619,6 @@ Gui, Submit
 iniWrite, %passthrough%, settings.ini, macro, passthrough
 iniWrite, %downpatch%, settings.ini, macro, downpatch
 SB_SetText("Updated Settings")
-;Goto OpenConfig
 Return
 
 ShowOnStart:
@@ -737,6 +738,9 @@ Reset:
 splitCleanup()
 charExist := FileExist(A_MyDocuments "\My Games\Terraria\Players\*.plr")
 worldExist := FileExist(A_MyDocuments "\My Games\Terraria\Worlds\*.wld")
+if (multiplayer = 1 && host = 0 && clearServers = 1) {
+	FileDelete, C:/Users/interp/Documents/My Games/Terraria/servers.dat
+}
 
 reset%resetMode%(charName, worldName, charExist, worldExist)
 Return
@@ -788,6 +792,7 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		sendKey("z", 1,, "^")
 		paste(IP)
 		sendKey("enter", 2)
+		sendMouse(2, 2)
 		return
 	}
 	if (worldExist != "") {
@@ -829,6 +834,7 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	sendKey("enter", 1, 100)
 	}
 	sendMouse(1.72, 1.7) ;create
+	sendMouse(2, 2)
 }
 
 sendMouse(X, Y, wait:="") {
