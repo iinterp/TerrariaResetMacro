@@ -1,18 +1,25 @@
 version := 1.0
 author := "interp"
 
-url := ""
-
-whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-whr.Open("GET", url, false)
-whr.Send()
-status := whr.status
-if (status != 200)
-   throw Exception("Failed to download data, status: " . status)
-MsgBox, % xml := whr.responseText
-
 #SingleInstance Force
 CoordMode, Mouse, Client
+
+updateChecker(version)
+
+updateChecker(version) {
+whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/version.txt?token=GHSAT0AAAAAABUHL5PEJCUBI2GE76NJKJJAY4W7CSA", true)
+whr.Send()
+whr.WaitForResponse()
+status := whr.status
+newVersion := whr.responseText
+
+if (newVersion !> version) {
+	return
+	}
+UrlDownloadToFile, https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/auto-updater/TerrariaResetMacro.ahk?token=GHSAT0AAAAAABUHL5PEXON3YFNDQ7GZPMKKY4W773A, %A_ScriptName%
+Reload
+}
 
 global resetKeybind
 global passthrough
