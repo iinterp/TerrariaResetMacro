@@ -1,6 +1,10 @@
 global version := 0.9
 author := "interp"
 
+global terrariaDir := A_MyDocuments "\My Games\Terraria"
+global playerDir := terrariaDir "\Players"
+global worldDir := terrariaDir "\Worlds"
+
 #SingleInstance Force
 CoordMode, Mouse, Client
 
@@ -72,7 +76,7 @@ if (charStyle!=0 && charStyle!=1) {
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName"
 
-if (moveFiles = 1) {
+if (moveFiles = 1 || moveFiles = 2) {
 	MoveFiles()
 }
 
@@ -658,33 +662,66 @@ iniWrite, %showOnStart%, settings.ini, macro, showOnStart
 Return
 
 MoveFiles() {
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Players\_Temp") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Players\_Temp
+	OutputDebug, % "Running MoveFiles() " moveFiles
+if !FileExist("%playerDir%\_Temp") {
+	FileCreateDir, %playerDir%\_Temp
 }
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Worlds\_Temp") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Worlds\_Temp
+if !FileExist("%worldDir%\_Temp") {
+	FileCreateDir, %worldDir%\_Temp
 }
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Players\_LastSession") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Players\_LastSession
+if !FileExist("%playerDir%\_LastSession") {
+	FileCreateDir, %playerDir%\_LastSession
 }
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Worlds\_LastSession") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Worlds\_LastSession
+if !FileExist("%worldDir%\_LastSession") {
+	FileCreateDir, %worldDir%\_LastSession
 }
 if (moveFiles = 1) {
-	FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\_Temp
-	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\_Temp
-	FileMove, %A_MyDocuments%\My Games\Terraria\Players\_LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Players\
-	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\_LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\
-	moveFiles := 2
-}
-if (moveFiles = 2) {
-		FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\_LastSession
-		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\_LastSession
 
-		FileMove, %A_MyDocuments%\My Games\Terraria\Players\_Temp\*.*, %A_MyDocuments%\My Games\Terraria\Players
-		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\_Temp\*.*, %A_MyDocuments%\My Games\Terraria\Worlds
+	OutputDebug, % "Running MoveFiles() 1!"
+	Loop, Files, %playerDir%\*, D F
+	{
+		if A_LoopFileName not in _Temp,_LastSession
+		FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp\%A_LoopFileName%
+		FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp
+	}
+	Loop, Files, %playerDir%\_LastSession\*, D F
+	{
+		FileMoveDir, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
+		FileMove, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\
+	}
+		Loop, Files, %worldDir%\*, F
+	{
+		FileMove, %worldDir%\%A_LoopFileName%, %worldDir%\_Temp\
+	}
+			Loop, Files, %worldDir%\_LastSession\*, F
+	{
+		FileMove, %worldDir%\_LastSession\%A_LoopFileName%, %worldDir%\
+	}
+	moveFiles := 2
+} else if (moveFiles = 2) {
+		OutputDebug, % "Running MoveFiles() 2!"
+			Loop, Files, %playerDir%\*, D F
+	{
+		if A_LoopFileName not in _Temp,_LastSession
+		FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession\%A_LoopFileName%
+		FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession
+	}
+		Loop, Files, %playerDir%\_Temp\*, D F
+	{
+		FileMoveDir, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
+		FileMove, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\
+	}
+			Loop, Files, %worldDir%\*, F
+	{
+		FileMove, %worldDir%\%A_LoopFileName%, %worldDir%\_LastSession\
+	}
+			Loop, Files, %worldDir%\_Temp\*, F
+	{
+		FileMove, %worldDir%\_Temp\%A_LoopFileName%, %worldDir%\
+	}
+		moveFiles := 1
 }
-OutputDebug, % "Ran MoveFiles()"
+IniWrite, %moveFiles%, settings.ini, macro, moveFiles
 Return
 }
 
@@ -772,8 +809,8 @@ Return
 
 Reset:
 splitCleanup()
-charExist := FileExist(A_MyDocuments "\My Games\Terraria\Players\*.plr")
-worldExist := FileExist(A_MyDocuments "\My Games\Terraria\Worlds\*.wld")
+charExist := FileExist(playerDir "\*.plr")
+worldExist := FileExist(worldDir "\*.wld")
 if (multiplayer = 1 && host = 0 && clearServers = 1) {
 	FileDelete, C:/Users/interp/Documents/My Games/Terraria/servers.dat
 }
