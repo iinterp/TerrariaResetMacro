@@ -1,10 +1,6 @@
 global version := 0.9
 author := "interp"
 
-global terrariaDir := A_MyDocuments "\My Games\Terraria"
-global playerDir := terrariaDir "\Players"
-global worldDir := terrariaDir "\Worlds"
-
 #SingleInstance Force
 CoordMode, Mouse, Client
 
@@ -32,6 +28,7 @@ global remindMeLater
 global downloadUpdate
 global ignoredVersion
 global changelogLink
+global terrariaDir
 
 OnExit("Exit")
 
@@ -51,6 +48,7 @@ iniRead, keyWait, settings.ini, macro, keyWait, 25
 iniRead, moveFiles, settings.ini, macro, moveFiles, 1
 iniRead, resetMode, settings.ini, macro, resetMode, Mouse
 iniRead, ignoredVersion, settings.ini, macro, ignoredVersion
+IniRead, terrariaDir, settings.ini, macro, terrariaDir, %A_MyDocuments%\My Games\Terraria
 
 iniRead, charName, settings.ini, character, charName, TOTALRESETS
 iniRead, charDifficulty, settings.ini, character, charDifficulty, 1
@@ -66,6 +64,9 @@ iniRead, multiplayer, settings.ini, multiplayer, multiplayer, 0
 iniRead, host, settings.ini, multiplayer, host, 1
 iniRead, terrariaFolder, settings.ini, multiplayer, terrariaFolder, C:\Program Files (x86)\Steam\steamapps\common\Terraria
 iniRead, IP, settings.ini, multiplayer, IP, %A_Space%
+
+global playerDir := terrariaDir "\Players"
+global worldDir := terrariaDir "\Worlds"
 
 FileRead, totalResets, resets/total.txt
 sessionResets := 0
@@ -594,12 +595,25 @@ Gui, Add, GroupBox, h162 w170 Center Section, Settings
 	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)"
 	Gui, Add, Checkbox, vautoClose xs+15 yp+22 checked%autoClose%, Close macro with Terraria
 	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
-Gui, Add, GroupBox, h100 w170 Section Center xs ys+172, Resets
+
+Gui, Add, GroupBox, h80 w170 Section Center xs ys+172, Terraria Directory:
+	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDirectoryEdit, %terrariaDir%
+	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
+
+Gui, Add, GroupBox, h100 w170 Section Center xs ys+90, Resets
 	Gui, Add, Text, xs+15 yp+22 vtotalResetsText, Total Resets: %totalResets%
 	Gui, Add, Text, xp yp+22 vsessionResetsText, Session Resets: %sessionResets%
 	Gui, Add, Button, xp yp+22 vwipeResets gWipeResets w140 h25, Wipe Resets
+
 Gui, Add, Button, vsettingsSave gSettingsSave xs w170 h30, Save
 Gui, Show, AutoSize Center, Settings
+Return
+
+TerrariaDirectoryExplore:
+FileSelectFolder, terrariaDir,, Select root Terraria folder
+GuiControl,, terrariaDirectoryEdit, %terrariaDir%
+Gui, Submit, Nohide
+IniWrite, %terrariaDir%, settings.ini, macro, terrariaDir
 Return
 
 WipeResets:
@@ -645,6 +659,7 @@ Gui, Main:-Disabled
 Gui, Submit
 iniWrite, %passthrough%, settings.ini, macro, passthrough
 iniWrite, %downpatch%, settings.ini, macro, downpatch
+IniWrite, %terrariaDir%, settings.ini, macro, terrariaDir
 SB_SetText("Updated Settings")
 Return
 
