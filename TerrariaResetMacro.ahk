@@ -24,7 +24,6 @@ global worldSeed
 global multiplayer
 global host
 global join
-global terrariaFolder
 global IP
 global moveFiles
 global ignoreThisUpdate
@@ -66,7 +65,6 @@ iniRead, worldSeed, settings.ini, world, worldSeed, %A_Space%
 
 iniRead, multiplayer, settings.ini, multiplayer, multiplayer, 0
 iniRead, host, settings.ini, multiplayer, host, 1
-iniRead, terrariaFolder, settings.ini, multiplayer, terrariaFolder, C:\Program Files (x86)\Steam\steamapps\common\Terraria
 iniRead, IP, settings.ini, multiplayer, IP, %A_Space%
 
 global playerDir := terrariaDir "\Players"
@@ -239,8 +237,6 @@ Gui, Main:New
 	GuiControl, Hide, multiplayerSettings
 	GuiControl, Hide, host
 	GuiControl, Hide, join
-	GuiControl, Hide, terrariaFolderText
-	GuiControl, Hide, terrariaFolder
 	GuiControl, Hide, IPText
 	GuiControl, Hide, IP
 	GuiControl, Hide, Settings2
@@ -567,12 +563,6 @@ GuiControl, Disable, join
 GuiControl, Enable, IPText
 GuiControl, Enable, IP
 SB_SetText("Multiplayer mode set to Join")
-Return
-
-TerrariaFolder:
-Gui, Submit, Nohide
-iniWrite, %terrariaFolder%, settings.ini, multiplayer, terrariaFolder
-SB_SetText("Terraria Folder set to " terrariaFolder)
 Return
 
 IP:
