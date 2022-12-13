@@ -658,31 +658,31 @@ iniWrite, %showOnStart%, settings.ini, macro, showOnStart
 Return
 
 MoveFiles() {
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Players\Temp") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Players\Temp
+if !FileExist("%A_MyDocuments%\My Games\Terraria\Players\_Temp") {
+	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Players\_Temp
 }
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Worlds\Temp") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Worlds\Temp
+if !FileExist("%A_MyDocuments%\My Games\Terraria\Worlds\_Temp") {
+	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Worlds\_Temp
 }
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Players\LastSession") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Players\LastSession
+if !FileExist("%A_MyDocuments%\My Games\Terraria\Players\_LastSession") {
+	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Players\_LastSession
 }
-if !FileExist("%A_MyDocuments%\My Games\Terraria\Worlds\LastSession") {
-	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Worlds\LastSession
+if !FileExist("%A_MyDocuments%\My Games\Terraria\Worlds\_LastSession") {
+	FileCreateDir, %A_MyDocuments%\My Games\Terraria\Worlds\_LastSession
 }
 if (moveFiles = 1) {
-	FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\Temp
-	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\Temp
-	FileMove, %A_MyDocuments%\My Games\Terraria\Players\LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Players\
-	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\
+	FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\_Temp
+	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\_Temp
+	FileMove, %A_MyDocuments%\My Games\Terraria\Players\_LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Players\
+	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\_LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\
 	moveFiles := 2
 }
 if (moveFiles = 2) {
-		FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\LastSession
-		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\LastSession
+		FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\_LastSession
+		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\_LastSession
 
-		FileMove, %A_MyDocuments%\My Games\Terraria\Players\Temp\*.*, %A_MyDocuments%\My Games\Terraria\Players
-		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\Temp\*.*, %A_MyDocuments%\My Games\Terraria\Worlds
+		FileMove, %A_MyDocuments%\My Games\Terraria\Players\_Temp\*.*, %A_MyDocuments%\My Games\Terraria\Players
+		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\_Temp\*.*, %A_MyDocuments%\My Games\Terraria\Worlds
 }
 OutputDebug, % "Ran MoveFiles()"
 Return
