@@ -741,6 +741,7 @@ worldExist := FileExist(A_MyDocuments "\My Games\Terraria\Worlds\*.wld")
 if (multiplayer = 1 && host = 0 && clearServers = 1) {
 	FileDelete, C:/Users/interp/Documents/My Games/Terraria/servers.dat
 }
+global oldClipboard := ClipboardAll
 
 reset%resetMode%(charName, worldName, charExist, worldExist)
 Return
@@ -841,6 +842,8 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	}
 	sendMouse(1.72, 1.7) ;create
 	sendMouse(2, 2)
+	clipboard := oldClipboard
+	oldClipboard := ""
 }
 
 sendMouse(X, Y, wait:="") {
@@ -1021,6 +1024,8 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		}
 	sendKey("right") ;move to create
 	sendKey("space") ;create world
+	clipboard := oldClipboard
+	oldClipboard := ""
 }
 paste(paste, times:=1, wait:="") {
 	if (wait != "") {
