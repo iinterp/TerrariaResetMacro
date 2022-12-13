@@ -29,6 +29,8 @@ global downloadUpdate
 global ignoredVersion
 global changelogLink
 
+OnExit("Exit")
+
 FileDelete, resets/session.txt
 
 if (!FileExist(settings.ini)) {
@@ -74,6 +76,10 @@ if (moveFiles = 1) {
 	MoveFiles()
 }
 
+If (WinExist(terraria.exe)) {
+terrariaHasExisted := 1
+}
+
 Menu, Tray, Icon, assets/icon.png
 Menu, Tray, NoStandard
 Menu, Tray, Add, Open Menu, OpenConfig
@@ -84,11 +90,12 @@ Menu, Tray, Add, Show Menu On Start, ShowOnStart
 if (showOnStart = 1) {
 Menu, Tray, Check, Show Menu On Start
 }
-Menu, Tray, Add, Exit, MainGuiClose
+Menu, Tray, Add, Exit, Exit
 if (showOnStart = 0) {
 	Goto Hotkey
 }
 OpenConfig:
+SetTimer, AutoClose, Off
 Gui, Settings:Submit
 Gui, Main:New
 
@@ -242,6 +249,7 @@ OnMessage(0x0200, "WM_MOUSEMOVE")
 if (checkedForUpdate != 1) {
 	updateChecker()
 }
+
 Return
 
 WM_MOUSEMOVE()
@@ -569,7 +577,7 @@ Settings:
 Gui, Settings:New, +OwnerMain
 Gui, Main:+Disabled
 
-Gui, Add, GroupBox, h140 w170 Center Section, Settings
+Gui, Add, GroupBox, h162 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough xs+15 yp+22 checked%passthrough%, Keybind passthrough
 	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
 	Gui, Add, Checkbox, vdownpatch xs+15 yp+22 checked%downpatch%, Downpatched (<v1.4.4)
@@ -580,7 +588,9 @@ Gui, Add, GroupBox, h140 w170 Center Section, Settings
 	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
 	Gui, Add, Checkbox, vclearServers xs+15 yp+22 checked%clearServers%, Clear server history
 	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)"
-Gui, Add, GroupBox, h100 w170 Section Center xs ys+150, Resets
+	Gui, Add, Checkbox, vautoClose xs+15 yp+22 checked%autoClose%, Close macro with Terraria
+	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
+Gui, Add, GroupBox, h100 w170 Section Center xs ys+172, Resets
 	Gui, Add, Text, xs+15 yp+22 vtotalResetsText, Total Resets: %totalResets%
 	Gui, Add, Text, xp yp+22 vsessionResetsText, Session Resets: %sessionResets%
 	Gui, Add, Button, xp yp+22 vwipeResets gWipeResets w140 h25, Wipe Resets
@@ -613,6 +623,19 @@ Gui, Destroy
 goto Hotkey
 Return
 
+AutoClose:
+OutputDebug, % "Ran AutoClose"
+If (WinExist("ahk_exe terraria.exe")) {
+	OutputDebug, % "Terraria exists"
+	terrariaHasExisted := 1
+	Return
+}
+if (!WinExist("ahk_exe terraria.exe") && terrariaHasExisted = 1) {
+	OutputDebug, % "Terraria no longer exists. Exiting"
+	ExitApp
+}
+OutputDebug, % "Terraria hasn't existed"
+Return
 SettingsSave:
 Gui, Main:-Disabled
 Gui, Submit
@@ -654,12 +677,6 @@ if (moveFiles = 1) {
 	FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\LastSession\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\
 	moveFiles := 2
 }
-Return
-}
-
-
-MainGuiClose:
-Gui, Submit
 if (moveFiles = 2) {
 		FileMove, %A_MyDocuments%\My Games\Terraria\Players\*.*, %A_MyDocuments%\My Games\Terraria\Players\LastSession
 		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\*.*, %A_MyDocuments%\My Games\Terraria\Worlds\LastSession
@@ -667,7 +684,22 @@ if (moveFiles = 2) {
 		FileMove, %A_MyDocuments%\My Games\Terraria\Players\Temp\*.*, %A_MyDocuments%\My Games\Terraria\Players
 		FileMove, %A_MyDocuments%\My Games\Terraria\Worlds\Temp\*.*, %A_MyDocuments%\My Games\Terraria\Worlds
 }
+OutputDebug, % "Ran MoveFiles()"
+Return
+}
+
+Exit:
 ExitApp
+
+MainGuiClose:
+ExitApp
+
+Exit() {
+OutputDebug, % "Exit reason: " A_ExitReason
+Gui, Submit
+moveFiles()
+Return
+}
 
 updateChecker() {
 	global checkedForUpdate := 1
@@ -726,6 +758,10 @@ updateChecker() {
 
 
 Hotkey:
+OutputDebug, % "Ran Hotkey label"
+if (autoClose = 1) {
+	SetTimer, AutoClose, 10000
+}
 #IfWinActive ahk_exe Terraria.exe
 if (passthrough = 1) {
 Hotkey, ~%resetKeybind%, Reset
