@@ -217,38 +217,6 @@ WM_MOUSEMOVE()
 		return
 }
 
-Settings:
-;Gui, Destroy
-Gui, Settings:New, +OwnerMain
-Gui, Main:+Disabled
-
-Gui, Add, GroupBox, h162 w170 Center Section, Settings
-	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
-	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
-	Gui, Add, Checkbox, vdownpatch gGUISaver xs+15 yp+22 checked%downpatch%, Downpatched (<v1.4.4)
-	downpatch_TT := "Enable for the macro to function on versions before 1.4.4."
-	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
-	showOnStart_TT := "Whether the macro GUI shows on start. The GUI can be opened at any time from the tray icon."
-	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move files
-	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
-	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
-	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)"
-	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
-	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
-
-Gui, Add, GroupBox, h80 w170 Section Center xs ys+172, Terraria Directory:
-	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
-	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
-
-Gui, Add, GroupBox, h100 w170 Section Center xs ys+90, Resets
-	Gui, Add, Text, xs+15 yp+22 vtotalResetsText, Total Resets: %totalResets%
-	Gui, Add, Text, xp yp+22 vsessionResetsText, Session Resets: %sessionResets%
-	Gui, Add, Button, xp yp+22 vwipeResets gWipeResets w140 h25, Wipe Resets
-
-Gui, Add, Button, vsettingsSave gSettingsSave xs w170 h30, Save
-Gui, Show, AutoSize Center, Settings
-Return
-
 TerrariaDirectoryExplore:
 FileSelectFolder, terrariaDir,, Select root Terraria folder
 GuiControl,, terrariaDir, %terrariaDir%
@@ -366,16 +334,68 @@ MultiplayerToggler() {
 	IniWrite, %multiplayer%, settings.ini, settings, multiplayer
 }
 
-WipeResets:
-	totalResets := 0
-	sessionResets := 0
-	FileDelete, resets/total.txt
-	FileAppend, 0, resets/total.txt
-	FileDelete, resets/session.txt
-	FileAppend, 0, resets/session.txt
-	GuiControl, Text, totalResetsText, Total Resets: %totalResets%
-	GuiControl, Text, sessionResetsText, Session Resets: %sessionResets%
-	Gui, Submit, Nohide
+Settings:
+Gui, Settings:New, +OwnerMain
+Gui, Main:+Disabled
+
+Gui, Add, GroupBox, h162 w170 Center Section, Settings
+	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
+	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
+	Gui, Add, Checkbox, vdownpatch gGUISaver xs+15 yp+22 checked%downpatch%, Downpatched (<v1.4.4)
+	downpatch_TT := "Enable for the macro to function on versions before 1.4.4."
+	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
+	showOnStart_TT := "Whether the macro GUI shows on start. The GUI can be opened at any time from the tray icon."
+	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move files
+	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
+	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
+	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)"
+	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
+	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
+
+Gui, Add, GroupBox, h85 w170 Section Center xs ys+172, Terraria Directory:
+	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
+	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
+
+Gui, Add, GroupBox, h132 w170 Section Center xs ys+90, Resets
+	Gui, Add, Text, xs+15 yp+22 vtotalResetsText Section, Total Resets:
+	Gui, Add, Text, x+24 yp vtotalResetsNum, %totalResets%
+	Gui, Add, Edit, xp yp vtotalResetsEdit w53 Hidden, %totalResets%
+	Gui, Add, Text, xs ys+22 vsessionResetsText, Session Resets:
+	Gui, Add, Text, x+9 yp vsessionResetsNum, %sessionResets%
+	Gui, Add, Edit, xp yp vsessionResetsEdit w53 Hidden, %sessionResets%
+	Gui, Add, DropDownList, xs yp+26 w140 Choose1, Global|Moon Lord|All Bosses
+	Gui, Add, Button, xp yp+26 veditResets gEditResets w140, Edit Resets
+	
+Gui, Add, Button, vsettingsSave gSettingsGuiClose xs-15 yp+45 w170 h30, Save
+Gui, Show, AutoSize Center, Settings
+Return
+
+EditResets:
+editResetsVar := !editResetsVar
+testVar := !testVar
+
+if (editResetsVar = 1) {
+	GuiControl,, editResets, Save Resets
+} else {
+	GuiControl,, editResets, Edit Resets
+}
+
+GuiControl, Hide%editResetsVar%, totalResetsNum
+GuiControl, Hide%editResetsVar%, sessionResetsNum
+GuiControl, Show%editResetsVar%, totalResetsEdit
+GuiControl, Show%editResetsVar%, sessionResetsEdit
+Gui, Submit, Nohide
+Return
+
+SaveResets:
+GuiControl, Show, editResets
+GuiControl, Show, totalResetsNum
+GuiControl, Show, sessionResetsNum
+GuiControl, Hide, totalResetsEdit
+GuiControl, Hide, sessionResetsEdit
+GuiControl, Hide, saveEditResets
+Gui, Submit, Nohide
+
 Return
 
 SnQ:
@@ -404,7 +424,7 @@ if (!WinExist("ahk_exe terraria.exe") && terrariaHasExisted = 1) {
 }
 OutputDebug, % "Terraria hasn't existed"
 Return
-SettingsSave() {
+SettingsGuiClose() {
 	for key, settingName in (macroSettings_Array) {
 		setting := %settingName%
 		IniWrite, %setting%, settings.ini, settings, %settingName%
