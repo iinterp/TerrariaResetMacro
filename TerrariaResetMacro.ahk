@@ -404,10 +404,14 @@ if (!WinExist("ahk_exe terraria.exe") && terrariaHasExisted = 1) {
 }
 OutputDebug, % "Terraria hasn't existed"
 Return
-SettingsSave:
-Gui, Main:-Disabled
-Gui, Submit
-Return
+SettingsSave() {
+	for key, settingName in (macroSettings_Array) {
+		setting := %settingName%
+		IniWrite, %setting%, settings.ini, settings, %settingName%
+	}
+	Gui, Main:-Disabled
+	Gui, Submit
+}
 
 MoveFiles() {
 	OutputDebug, % "Running MoveFiles() " moveFiles
