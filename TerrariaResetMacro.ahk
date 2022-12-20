@@ -248,15 +248,16 @@ AddTrayPresets() {
 	for key, value in (preset_Array) {
 		Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
 		if (value = presetName) {
-			OutputDebug, % value " = " presetName
 			Menu, PresetMenu, Check, %value%
+		} else {
+			Menu, PresetMenu, Uncheck, %value%
 		}
 	}
 }
 
 TrayLoadPreset(presetToLoad) {
 	presetName := presetToLoad
-	Gui, Submit, Nohide
+	Gui, Main:Submit, Nohide
 	for key, value in (preset_Array) {
 		if (presetName = value) {
 			OutputDebug, % "Setting preset to " presetName
@@ -279,7 +280,7 @@ TrayLoadPreset(presetToLoad) {
 			Menu, PresetMenu, Uncheck, %value%
 		}
 	}
-	GUIInit()
+	LoadPreset(1)
 }
 
 LoadSettings() {
@@ -383,9 +384,10 @@ SavePreset() {
 		}
 	}
 	LoadPreset()
+	AddTrayPresets()
 }
 
-LoadPreset() {
+LoadPreset(fromTray:=0) {
 	Gui, Submit, Nohide
 	for key, value in (preset_Array) {
 		if (presetName = value) {
@@ -404,7 +406,9 @@ LoadPreset() {
 			FileAppend, %presetResets%, resets/current_resets.txt
 			FileDelete, resets/category.txt
 			FileAppend, %presetName%, resets/category.txt
+			if (fromTray != 1) {
 			GUIInit()
+			}
 		}
 	}
 }
