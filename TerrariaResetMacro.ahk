@@ -931,7 +931,13 @@ if (!WinExist("ahk_exe terraria.exe")) {
 	} else if (runOnStart = 1) {
 		Run, "%terrariaSteamDir%\Terraria.exe"
 		OutputDebug, % "Ran " terrariaSteamDir "\Terraria.exe"
-	}
+	} else if (disableSeasons = 1 && seasonalActive = 1) {
+		OutputDebug, % "waiting for terraria.exe"
+		WinWait, ahk_exe terraria.exe
+		sleep, 5000
+		Run, %ComSpec% /c "RunAsDate.exe /movetime 01\01\2023 Attach:"%terrariaSteamDir%\Terraria.exe"", %A_ScriptDir%/utils
+		OutputDebug, % "ran RunAsDate:Attach"
+	} 
 } else if (disableSeasons = 1 && seasonalActive = 1 && hasLaunchedTerraria != 1) {
 	Run, %ComSpec% /c "RunAsDate.exe /movetime 01\01\2023 Attach:"%terrariaSteamDir%\Terraria.exe"", %A_ScriptDir%/utils
 	OutputDebug, % "ran RunAsDate:Attach"
