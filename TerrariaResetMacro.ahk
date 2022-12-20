@@ -1,23 +1,20 @@
-global version := 0.9
+global macroVersion := 0.9
 author := "interp"
-
-global terrariaDir := A_MyDocuments "\My Games\Terraria"
-global playerDir := terrariaDir "\Players"
-global worldDir := terrariaDir "\Worlds"
 
 #SingleInstance Force
 CoordMode, Mouse, Client
 
 global resetKeybind
 global passthrough
-global downpatch
 global keyDuration
 global waitMultiplier
 global keyWait
 global resetMode
+global charName
 global charDifficulty
 global charStyle
 global charStylePaste
+global worldName
 global worldDifficulty
 global worldSize
 global worldEvil
@@ -29,10 +26,24 @@ global moveFiles
 global ignoreThisUpdate
 global remindMeLater
 global downloadUpdate
-global ignoredVersion
+global ignoredMacroVersion
 global changelogLink
 global terrariaDir
 global showOnStart
+global version
+
+global resetSelection
+global presetResetsNum
+global globalResets
+
+global presetName
+global preset_Array := []
+global preset_ArrayString
+
+
+global macroSettings_Array := ["dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
+global categorySettings_Array := ["version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
+global settings_Array := ["dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
 
 global resetMode_Array := ["Keyboard", "Mouse"]
 global charDifficulty_Array := ["Journey", "Classic", "Mediumcore", "Hardcore"]
@@ -48,45 +59,17 @@ global gui_Arrays := ["resetMode_Array","charDifficulty_Array","charStyle_Array"
 
 OnExit("Exit")
 
-FileDelete, resets/session.txt
-
 if (!FileExist(settings.ini)) {
 	FileAppend,, settings.ini
 }
 
-iniRead, resetKeybind, settings.ini, settings, resetKeybind, %A_Space%
-iniRead, passthrough, settings.ini, settings, passthrough, 1
-iniRead, downpatch, settings.ini, settings, downpatch, 0
-iniRead, showOnStart, settings.ini, settings, showOnStart, 1
-iniRead, keyDuration, settings.ini, settings, keyDuration, 10
-iniRead, waitMultiplier, settings.ini, settings, waitMultiplier, 1.0
-iniRead, keyWait, settings.ini, settings, keyWait, 25
-iniRead, moveFiles, settings.ini, settings, moveFiles, 1
-iniRead, resetMode, settings.ini, settings, resetMode, Mouse
-iniRead, ignoredVersion, settings.ini, settings, ignoredVersion
-iniRead, terrariaDir, settings.ini, settings, terrariaDir, %A_MyDocuments%\My Games\Terraria
-iniRead, clearServers, settings.ini, settings, clearServers, 0
-iniRead, autoClose, settings.ini, settings, autoClose, 1
-
-iniRead, charName, settings.ini, settings, charName, TOTALRESETS
-iniRead, charDifficulty, settings.ini, settings, charDifficulty, Classic
-iniRead, charStyle, settings.ini, settings, charStyle, Default
-iniRead, charStylePaste, settings.ini, settings, charStylePaste, %A_Space%
-
-iniRead, worldName, settings.ini, settings, worldName, %A_Space%
-iniRead, worldDifficulty, settings.ini, settings, worldDifficulty, Classic
-iniRead, worldSize, settings.ini, settings, worldSize, Small
-iniRead, worldEvil, settings.ini, settings, worldEvil, Crimson
-iniRead, worldSeed, settings.ini, settings, worldSeed, %A_Space%
-
-iniRead, multiplayer, settings.ini, settings, multiplayer, 0
-iniRead, multiplayerMethod, settings.ini, settings, multiplayerMethod, Host
-iniRead, IP, settings.ini, settings, IP, %A_Space%
+LoadSettings()
 
 global playerDir := terrariaDir "\Players"
 global worldDir := terrariaDir "\Worlds"
 
-FileRead, totalResets, resets/total.txt
+FileDelete, resets/session_resets.txt
+FileAppend, 0, resets/session_resets.txt
 sessionResets := 0
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName"
@@ -104,16 +87,25 @@ Menu, Tray, NoStandard
 Menu, Tray, Add, Open Menu, OpenConfig
 Menu, Tray, Default, Open Menu
 Menu, Tray, Click, 1
-Menu, Tray, Tip, Terraria Reset Macro v%version%
+Menu, Tray, Tip, Terraria Reset Macro v%macroVersion%
 Menu, Tray, Add, Show Menu On Start, MenuCheckToggle
+Menu, Tray, Add
 if (showOnStart = 1) {
 Menu, Tray, Check, Show Menu On Start
 }
+AddTrayPresets()
+Menu, Tray, Add, Change Preset, :PresetMenu
+Menu, Tray, Add
+
 Menu, Tray, Add, Exit, Exit
+
 if (showOnStart = 0) {
 	Goto Hotkey
 }
 OpenConfig:
+if (firstLaunch = 0) {
+	LoadSettings()
+}
 SetTimer, AutoClose, Off
 Gui, Settings:Submit
 Gui, Main:New
@@ -136,7 +128,14 @@ Gui, Main:New
 		Gui, Add, Edit, w110 vkeyWait gGUISaver, %keyWait%
 		keyWait_TT := "The time between key presses. Increase if the macro is missing inputs."
 
-	Gui, Add, GroupBox, Center Section xs ys+130 h50, Character Name:
+	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Category:
+		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
+		Gui, Add, Text, xp yp+28, Version:
+		Gui, Add, Edit, x+m yp-2 w60 vversion gGUISaver, %version%
+		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
+		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
+		
+	Gui, Add, GroupBox, Center Section xs ym+285 h50, Character Name:
 		Gui, Add, Edit, xp+15 yp+18 r1 w110 vcharName gGUISaver, %charName%
 		charName_TT := "Can use TOTALRESETS and SESSIONRESETS variables."
 
@@ -154,7 +153,7 @@ Gui, Main:New
 		charStylePaste_TT := "Paste character template to use as style."
 
 		Gui, Add, GroupBox, Center Section xs ys+120 h50, Multiplayer:
-			Gui, Add, Checkbox, vmultiplayer gMultiplayerToggler xs+15 yp+22 checked%multiplayer%, Multiplayer
+			Gui, Add, Checkbox, vmultiplayer gGUISaver xs+15 yp+22 checked%multiplayer%, Multiplayer
 		Gui, Add, Button, xs ys+66 w140 h40 vsettings gSettings, Settings
 		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings:
 			Gui, Add, Button, xs+15 yp+22 w50 vmultiplayerMethod_Host gGUISaver, Host
@@ -164,7 +163,7 @@ Gui, Main:New
 
 ;----
 
-	Gui, Add, GroupBox, Center xs+150 ym+200 Section h50, World Name:
+	Gui, Add, GroupBox, Center xs+150 ym+285 Section h50, World Name:
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
 		worldName_TT := "Leave blank for random. Can use TOTALRESETS and SESSIONRESETS variables."
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
@@ -189,9 +188,11 @@ Gui, Main:New
 
 GUIInit()
 
-Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%version%
+Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%macroVersion%
 Gui, Show, AutoSize Center, Terraria Reset Macro
 OnMessage(0x0200, "WM_MOUSEMOVE")
+
+firstLaunch := 0
 
 if (checkedForUpdate != 1) {
 	updateChecker()
@@ -232,74 +233,291 @@ GuiControl,, showOnStart, %showOnStart%
 Gui, Submit, Nohide
 Return
 
-GUISaver() {
-Gui, Submit, Nohide
-OutputDebug, % "Variable to save: " A_GuiControl
-
-varName := A_GuiControl
-var := %varName%
-
-if (varName = "charStylePaste") {
-	var := StrReplace(charStylePaste, "`n")
-	charStyle := "Paste"
-	IniWrite, %charStyle%, settings.ini, settings, charStyle
-	GuiControl, Enable, charStyle_Default
-	GuiControl, Enable, charStyle_Random
+AddTrayPresets() {
+	for key, value in (preset_Array) {
+		Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+		if (value = presetName) {
+			OutputDebug, % value " = " presetName
+			Menu, PresetMenu, Check, %value%
+		}
+	}
 }
 
-if InStr(A_GuiControl, "_") {
-	OutputDebug, % "Parsing..."
-	varArray := StrSplit(A_GuiControl, "_")
-	varName := varArray[1]
-	var := varArray[2]
-	varNameArray := varName "_Array"
-	varNameArray := %varNameArray%
-
-	OutputDebug, % "Split strings: " varName "," var
-
-	if (varName = "multiplayerMethod") {
-		if (var = "Host") {
-			GuiControl, Disable, IPText
-			GuiControl, Disable, IP
+TrayLoadPreset(presetToLoad) {
+	presetName := presetToLoad
+	Gui, Submit, Nohide
+	for key, value in (preset_Array) {
+		if (presetName = value) {
+			OutputDebug, % "Setting preset to " presetName
+			for key, settingName in (categorySettings_Array) {
+				setting := %settingName%
+				IniRead, defaultSetting, settings.ini, defaults, %settingName%
+				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
+				if (setting = "ERROR") {
+					setting := ""
+				}
+				%settingName% := setting
+			}
+			IniWrite, %presetName%, settings.ini, settings, presetName
+		}
+	}
+	for key, value in (preset_Array) {
+		if (presetName = value) {
+			Menu, PresetMenu, Check, %value%
 		} else {
-			GuiControl, Enable, IPText
-			GuiControl, Enable, IP
+			Menu, PresetMenu, Uncheck, %value%
 		}
 	}
-
-	for key, value in (varNameArray) {
-		if (value != var) {
-			GuiControl, Enable, %varName%_%value%
-		} else if (value = var) {
-			GuiControl, Disable, %varName%_%var%
-		}
-	}
-} else if (varName = "showOnStart") {
-	OutputDebug, % "Reversing variable" " > " var
-	var := showOnStart
-	Menu, Tray, ToggleCheck, Show Menu On Start
+	GUIInit()
 }
 
-IniWrite, %var%, settings.ini, settings, %varName%
-%varName% := var
-OutputDebug, % "Set " varName " to " var
-SB_SetText("Set " varName " to " var)
-Return
+LoadSettings() {
+	OutputDebug, % "Loading settings..."
+	IniRead, presetName, settings.ini, settings, presetName, Default
+	IniRead, preset_Array, settings.ini, settings, preset_Array, Default
+
+	if (presetName = "Default" || preset_Array = "Default") {
+		presetName := "Default"
+		IniWrite, %presetName%, settings.ini, settings, presetName
+		preset_Array := "Default"
+		IniWrite, %preset_Array%, settings.ini, settings, preset_Array
+	}
+
+	FileRead, globalResets, resets/global_resets.txt
+	FileRead, presetResets, resets/%presetResets%_resets.txt
+	FileRead, sessionResets, resets/session_resets.txt
+	FileDelete, resets/current_resets.txt
+	FileAppend, %presetResets%, resets/current_resets.txt
+	FileDelete, resets/category.txt
+	FileAppend, %presetName%, resets/category.txt
+	
+	preset_ArrayString := preset_Array
+	preset_Array := StrSplit(preset_Array, "|")
+	OutputDebug, % "Preset: " presetName
+	for key, settingName in (categorySettings_Array) {
+		setting := %settingName%
+		IniRead, defaultSetting, settings.ini, defaults, %settingName%
+		IniRead, setting, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
+		if (setting = "ERROR") {
+			setting := ""
+		}
+		%settingName% := setting
+	}
+	for key, settingName in (macroSettings_Array) {
+		setting := %settingName%
+		IniRead, defaultSetting, settings.ini, defaults, %settingName%
+		IniRead, setting, settings.ini, settings, %settingName%, %defaultSetting%
+		if (setting = "ERROR") {
+			setting := ""
+		}
+		%settingName% := setting
+	}
+}
+
+SavePreset() {
+	if (presetName ~= "\*|\|") {
+		MsgBox % "Preset name cannot contain these characters: `n * |"
+		Return
+	}
+		if (presetName = "") {
+		presetName := "Default"
+		OutputDebug, % "No preset found"
+	}
+
+	if (charStyle = "Default" || charStyle = "Random") {
+		charStylePaste := ""
+	} else {
+		charStylePaste := StrReplace(charStylePaste, "`n")
+		charStyle := "Paste"
+	}
+
+	for key, settingName in (categorySettings_Array) {
+		setting := %settingName%
+		IniWrite, %setting%, settings.ini, %presetName%_Settings, %settingName%
+	}
+
+	if (preset_Array.Length() = 0) {
+		preset_Array.Push("Default")
+	}
+
+	preset_ArrayString := ""
+	for index, preset in (preset_Array) {
+		preset_ArrayString .= "|" . preset
+		preset_ArrayString := LTrim(preset_ArrayString, "|")
+		preset_ArrayString := LTrim(preset_ArrayString, A_Space)
+	}
+
+	for index, value in (preset_Array) {
+		if (preset_Array[index] = presetName) {
+			OutputDebug, % "Already saved " presetName
+			Return
+		}
+	}
+
+	preset_ArrayString .= "|" . presetName
+	preset_Array.Push(presetName)
+
+	OutputDebug, % "Saved " presetName
+
+	if (presetResets = "") {
+		presetResets := 0
+	}
+
+	FileAppend, %presetResets%, resets/%presetName%_resets.txt
+	IniWrite, %preset_ArrayString%, settings.ini, settings, preset_Array
+	GuiControl,,  presetName, |%preset_ArrayString%
+	for index, preset in (preset_Array) {
+		if (preset = presetName) {
+			GuiControl, Choose, presetName, %index%
+		}
+	}
+	LoadPreset()
+}
+
+LoadPreset() {
+	Gui, Submit, Nohide
+	for key, value in (preset_Array) {
+		if (presetName = value) {
+			OutputDebug, % "Setting preset to " presetName
+			for key, settingName in (categorySettings_Array) {
+				setting := %settingName%
+				IniRead, defaultSetting, settings.ini, defaults, %settingName%
+				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
+				if (setting = "ERROR") {
+					setting := ""
+				}
+			}
+			IniWrite, %presetName%, settings.ini, settings, presetName
+			FileRead, presetResets, resets/%presetName%_resets.txt
+			FileDelete, resets/current_resets.txt
+			FileAppend, %presetResets%, resets/current_resets.txt
+			FileDelete, resets/category.txt
+			FileAppend, %presetName%, resets/category.txt
+			GUIInit()
+		}
+	}
+}
+
+DeletePreset() {
+	if (preset_Array[2] = "") {
+		MsgBox % "You cannot delete all presets!"
+		Return
+	}
+	for index, value in (preset_Array) {
+		if (value = presetName) {
+			preset_Array.RemoveAt(index)
+		}
+	}
+	preset_ArrayString := ""
+	for index, preset in (preset_Array) {
+		preset_ArrayString .= "|" . preset
+		preset_ArrayString := LTrim(preset_ArrayString, "|")
+		preset_ArrayString := LTrim(preset_ArrayString, A_Space)
+	}
+	FileDelete, resets/%presetName%_resets.txt
+	IniDelete, settings.ini, %presetName%_Settings
+	IniWrite, %preset_ArrayString%, settings.ini, settings, preset_Array
+	GuiControl,, presetName, |%preset_ArrayString%
+	presetName := preset_Array[1]
+	GuiControl, Choose, presetName, 1
+	LoadPreset()
+}
+
+GUISaver() {
+	Gui, Submit, Nohide
+	if (presetName = "") {
+		presetName := "Default"
+		OutputDebug, % "No preset found"
+	}
+
+	varName := A_GuiControl
+	var := %varName%
+
+	if (varName = "multiplayer") {
+		MultiplayerToggler()
+	}
+
+	if (varName = "charStylePaste") {
+		var := StrReplace(charStylePaste, "`n")
+		charStyle := "Paste"
+		GuiControl, Enable, charStyle_Default
+		GuiControl, Enable, charStyle_Random
+	}
+
+	if InStr(A_GuiControl, "_") {
+		OutputDebug, % "Parsing..."
+		varArray := StrSplit(A_GuiControl, "_")
+		varName := varArray[1]
+		var := varArray[2]
+		varNameArray := varName "_Array"
+		varNameArray := %varNameArray%
+
+		OutputDebug, % "Split strings: " varName "," var
+
+		if (varName = "multiplayerMethod") {
+			if (var = "Host") {
+				GuiControl, Disable, IPText
+				GuiControl, Disable, IP
+			} else {
+				GuiControl, Enable, IPText
+				GuiControl, Enable, IP
+			}
+		}
+
+		for key, value in (varNameArray) {
+			if (value != var) {
+				GuiControl, Enable, %varName%_%value%
+			} else if (value = var) {
+				GuiControl, Disable, %varName%_%var%
+			}
+		}
+	} 
+	if (varName = "showOnStart") {
+		OutputDebug, % "Reversing variable" " > " var
+		var := showOnStart
+		Menu, Tray, ToggleCheck, Show Menu On Start
+	}
+
+	%varName% := var
+
+	for key, value in (macroSettings_Array) {
+		if (varName = value) {
+			IniWrite, %var%, settings.ini, settings, %varName%
+		}
+	}
+
+	OutputDebug, % "Set " varName " to " var
+	SB_SetText("Set " varName " to " var)
+	Return
 }
 
 GUIInit() {
-	for buttonKey, buttonArray in (gui_Arrays) {
-		buttonVarArray := StrSplit(buttonArray, "_")
-		buttonVarName := buttonVarArray[1]
-		buttonArray := %buttonArray%
-
-		for buttonNestedKey, buttonNestedValue in (buttonArray) {
-			buttonVar := %buttonVarName%
-			if (buttonNestedValue != buttonVar) {
-				GuiControl, Disable, %buttonVarName%_%buttonVar%
+	OutputDebug, % "GUI Initialization..."
+	OutputDebug, % presetName "!"
+	for index, preset in (preset_Array) {
+		if (preset = presetName) {
+			GuiControl, Choose, presetName, %index%
+		}
+	}
+	for key, varArray in (gui_Arrays) {
+		varSplit := StrSplit(varArray, "_")
+		varName := varSplit[1]
+		var := %varName%
+		for key, varSetting in (%varArray%) {
+			if (varSetting = var) {
+				GuiControl, Disable, %varName%_%varSetting%
+			} else {
+				GuiControl, Enable, %varName%_%varSetting%
 			}
 		}
 	}
+	GuiControl,, multiplayer, %multiplayer%
+	GuiControl,, IP, %IP%
+	GuiControl,, version, %version%
+	GuiControl,, charName, %charName%
+	GuiControl,, worldName, %worldName%
+	GuiControl,, worldSeed, %worldSeed%
+	GuiControl,, charStylePaste, %charStylePaste%
 
 	if (multiplayerMethod = "Host") {
 		GuiControl, Disable, IPText
@@ -312,26 +530,24 @@ GUIInit() {
 }
 
 MultiplayerToggler() {
-	Gui, Submit, Nohide
 	if (multiplayer = 1) {
 		GuiControl, Hide, settings
 		Guicontrol, Hide, SnQ
 		GuiControl, Show, settings2
 		GuiControl, Show, SnQ2
-		for multiplayerKey, multiplayerValue in (multiplayerVisible_Array) {
-			GuiControl, Show, %multiplayerValue%
+		for key, value in (multiplayerVisible_Array) {
+			GuiControl, Show, %value%
 		}
 	} else {
-		for multiplayerKey, multiplayerValue in (multiplayerVisible_Array) {
-			GuiControl, Hide, %multiplayerValue%
+		for key, value in (multiplayerVisible_Array) {
+			GuiControl, Hide, %value%
 		}
 		GuiControl, Hide, settings2
 		Guicontrol, Hide, SnQ2
 		GuiControl, Show, settings
 		GuiControl, Show, SnQ
 	}
-	Gui, Show, AutoSize Center, Terraria Reset Macro
-	IniWrite, %multiplayer%, settings.ini, settings, multiplayer
+	Gui, Main:Show, AutoSize, Terraria Reset Macro
 }
 
 Settings:
@@ -341,50 +557,86 @@ Gui, Main:+Disabled
 Gui, Add, GroupBox, h162 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
 	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
-	Gui, Add, Checkbox, vdownpatch gGUISaver xs+15 yp+22 checked%downpatch%, Downpatched (<v1.4.4)
-	downpatch_TT := "Enable for the macro to function on versions before 1.4.4."
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
 	showOnStart_TT := "Whether the macro GUI shows on start. The GUI can be opened at any time from the tray icon."
-	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move files
+	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move player && world files
 	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
 	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
-	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)"
+	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)."
 	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
 	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
+	Gui, Add, Checkbox, vdontShowUnsavedPopup gGUISaver xs+15 yp+22 checked%dontShowUnsavedPopup%, Don't show unsaved popup
+	dontShowUnsavedPopup_TT := "Skip the unsaved preset popup when your preset has unsaved changes."
 
-Gui, Add, GroupBox, h85 w170 Section Center xs ys+172, Terraria Directory:
+Gui, Add, GroupBox, h85 w170 Section Center xs ys+170, Terraria Directory:
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
 	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
 
-Gui, Add, GroupBox, h132 w170 Section Center xs ys+90, Resets
-	Gui, Add, Text, xs+15 yp+22 vtotalResetsText Section, Total Resets:
-	Gui, Add, Text, x+24 yp vtotalResetsNum, %totalResets%
-	Gui, Add, Edit, xp yp vtotalResetsEdit w53 Hidden, %totalResets%
-	Gui, Add, Text, xs ys+22 vsessionResetsText, Session Resets:
-	Gui, Add, Text, x+9 yp vsessionResetsNum, %sessionResets%
-	Gui, Add, Edit, xp yp vsessionResetsEdit w53 Hidden, %sessionResets%
-	Gui, Add, DropDownList, xs yp+26 w140 Choose1, Global|Moon Lord|All Bosses
+
+
+Gui, Add, GroupBox, h152 w170 Section Center xs ys+93, Resets
+	Gui, Add, Text, xs+15 ys+22 vglobalResetsText, Global Resets:
+	Gui, Add, Text, xs+100 yp vglobalResetsNum w57, %globalResets%
+	Gui, Add, Edit, xp-2 yp-2 vglobalResets w57 Hidden, %globalResets%
+	Gui, Add, Text, xs+15 yp+22 vpresetResetsText, Preset Resets:
+	Gui, Add, Text, xs+100 yp vpresetResetsNum w57, %presetResets%
+	Gui, Add, Edit, xp-2 yp-2 vpresetResetsSettings w57 Hidden, %presetResets%
+	Gui, Add, Text, xs+15 yp+22 vsessionResetsText, Session Resets:
+	Gui, Add, Text, xs+100 yp vsessionResetsNum w57, %sessionResets%
+	Gui, Add, Edit, xp-2 yp-2 vsessionResets w57 Hidden, %sessionResets%
+	Gui, Add, DropDownList, xs+15 yp+26 w140 vresetSelection gResetSelection, %preset_ArrayString%
 	Gui, Add, Button, xp yp+26 veditResets gEditResets w140, Edit Resets
+
+	for index, preset in (preset_Array) {
+		if (preset = presetName) {
+			GuiControl, Choose, resetSelection, %index%
+		}
+	}
+ 	ResetSelection()
 	
-Gui, Add, Button, vsettingsSave gSettingsGuiClose xs-15 yp+45 w170 h30, Save
+Gui, Add, Button, vsettingsSave gSettingsGuiClose xs yp+54 w170 h30, Save
 Gui, Show, AutoSize Center, Settings
 Return
 
+ResetSelection() {
+	Gui, Submit, Nohide
+	FileRead, presetResets, resets/%resetSelection%_resets.txt
+	GuiControl,, presetResetsNum, %presetResets%
+	GuiControl,, presetResetsSettings, %presetResets%
+}
+
 EditResets:
 editResetsVar := !editResetsVar
-testVar := !testVar
 
 if (editResetsVar = 1) {
 	GuiControl,, editResets, Save Resets
 } else {
 	GuiControl,, editResets, Edit Resets
+	Gui, Submit, Nohide
+	OutputDebug, % "GR " presetResetsNum
+	GuiControl,, globalResetsNum, %globalResets%
+	GuiControl,, presetResetsNum, %presetResetsSettings%
+	GuiControl,, sessionResetsNum, %sessionResets%
+
+	FileDelete, resets/global_resets.txt
+	FileAppend, %globalResets%, resets/global_resets.txt
+	FileDelete, resets/%resetSelection%_resets.txt
+	FileAppend, %presetResetsSettings%, resets/%resetSelection%_resets.txt
+	FileDelete, resets/session_resets.txt
+	FileAppend, %sessionResets%, resets/session_resets.txt
+
+	if (presetName = resetSelection) {
+		OutputDebug, % presetName " = " resetSelection
+		presetResets := presetResetsSettings
+	}
 }
 
-GuiControl, Hide%editResetsVar%, totalResetsNum
+GuiControl, Hide%editResetsVar%, globalResetsNum
+GuiControl, Hide%editResetsVar%, presetResetsNum
 GuiControl, Hide%editResetsVar%, sessionResetsNum
-GuiControl, Show%editResetsVar%, totalResetsEdit
-GuiControl, Show%editResetsVar%, sessionResetsEdit
-Gui, Submit, Nohide
+GuiControl, Show%editResetsVar%, globalResets
+GuiControl, Show%editResetsVar%, presetResetsSettings
+GuiControl, Show%editResetsVar%, sessionResets
 Return
 
 SaveResets:
@@ -406,9 +658,88 @@ loop, parse, requiredFields, `,
 		Return
 	}
 }
+for key, newSettingName in (categorySettings_Array) {
+	newSetting := %newSettingName%
+	IniRead, defaultSetting, settings.ini, defaults, %newSettingName%
+	IniRead, oldSetting, settings.ini, %presetName%_Settings, %newSettingName%, %defaultSetting%
+	if (oldSetting = "ERROR") {
+		oldSetting := ""
+	}
+	
+	if (newSetting != oldSetting) {
+		OutputDebug, % newSettingName " " newSetting " != " oldSetting
+		unsavedChanges := 1
+	}
+}
+if (unsavedChanges != 1) {
+	Gui, Main:Submit
+	Gui, Main:Destroy
+	goto Hotkey
+	Return
+}
+
+if (dontShowUnsavedPopup = "Save" || dontShowUnsavedPopup = "1") {
+	goto SaveUnsaved
+	return
+}
+if (dontShowUnsavedPopup = "Load") {
+	goto LoadUnsaved
+	return
+}
+	Gui, Main:+Disabled
+	Gui, UnsavedChanges:New, +OwnerMain
+		Gui, Add, Text,, You have unsaved changes to your preset
+		Gui, Add, ComboBox,vunsavedPresetName w242, %preset_ArrayString%
+
+		for index, preset in (preset_Array) {
+			if (preset = presetName) {
+			GuiControl, Choose, presetName, %index%
+			}
+		}
+
+		Gui, Add, Checkbox, vdontShowUnsavedPopup, Don't show this again
+		Gui, Add, Button,x+m yp-3 w50 gLoadUnsaved, Load
+		Gui, Add, Button,x+m yp w50 gSaveUnsaved, Save
+		Gui, Show, Autosize Center, Unsaved Changes
+	Return
+
+SaveUnsaved:
+Gui, Main:-Disabled
 Gui, Submit
-Gui, Destroy
+for key, newSettingName in (settings_Array) {
+	newSetting := %newSettingName%
+	IniWrite, %newSetting%, settings.ini, %unsavedPresetName%_Settings, %newSettingName%
+}
+unsavedChanges := 0
+if (dontShowUnsavedPopup = 1) {
+	dontShowUnsavedPopup := "Save"
+	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
+}
+Gui, Main:Submit
+Gui, Main:Destroy
 goto Hotkey
+Return
+
+LoadUnsaved:
+Gui, Main:-Disabled
+Gui, UnsavedChanges:Submit
+
+presetName := unsavedPresetName
+LoadPreset()
+unsavedChanges := 0
+if (dontShowUnsavedPopup = 1) {
+	dontShowUnsavedPopup := "Load"
+	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
+}
+Gui, Main:Submit
+Gui, Main:Destroy
+goto Hotkey
+Return
+
+UnsavedChangesGuiClose:
+Gui, Main:-Disabled
+Gui, Submit
+unsavedChanges := 0
 Return
 
 AutoClose:
@@ -435,19 +766,19 @@ SettingsGuiClose() {
 
 MoveFiles() {
 	OutputDebug, % "Running MoveFiles() " moveFiles
-if !FileExist("%playerDir%\_Temp") {
-	FileCreateDir, %playerDir%\_Temp
-}
-if !FileExist("%worldDir%\_Temp") {
-	FileCreateDir, %worldDir%\_Temp
-}
-if !FileExist("%playerDir%\_LastSession") {
-	FileCreateDir, %playerDir%\_LastSession
-}
-if !FileExist("%worldDir%\_LastSession") {
-	FileCreateDir, %worldDir%\_LastSession
-}
-if (moveFiles = 1) {
+	if !FileExist(playerDir "\_Temp") {
+		FileCreateDir, %playerDir%\_Temp
+	}
+	if !FileExist(worldDir "\_Temp") {
+		FileCreateDir, %worldDir%\_Temp
+	}
+	if !FileExist(playerDir "\_LastSession") {
+		FileCreateDir, %playerDir%\_LastSession
+	}
+	if !FileExist(worldDir "\_LastSession") {
+		FileCreateDir, %worldDir%\_LastSession
+	}
+	if (moveFiles = 1) {
 
 	Loop, Files, %playerDir%\*, D F
 	{
@@ -515,13 +846,13 @@ updateChecker() {
 	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/version.txt", true)
 	whr.Send()
 	whr.WaitForResponse()
-	global newVersion := whr.responseText
-	if (newVersion !> version || newVersion = ignoredVersion) {
+	global newMacroVersion := whr.responseText
+	if (newMacroVersion !> macroVersion || newMacroVersion = ignoredMacroVersion) {
 		Return
 	}
 		Gui, Updater:New, +OwnerMain
 			Gui, Add, Text,, There is a new update available.
-			Gui, Add, Text,center, v%version% > v%newVersion%
+			Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
 			if (changeloglink != "") {
 				Gui, Add, Link, vchangelogLink, <a href="%changelogLink%">changelog</a>
 			}
@@ -533,8 +864,8 @@ updateChecker() {
 		Return
 	
 		IgnoreThisUpdate:
-		ignoredVersion := newVersion
-		iniWrite, %ignoredVersion%, settings.ini, settings, ignoredVersion
+		ignoredMacroVersion := newMacroVersion
+		iniWrite, %ignoredMacroVersion%, settings.ini, settings, ignoredMacroVersion
 		Gui, Main:-Disabled
 		Gui, Updater:Submit
 		Return
@@ -590,12 +921,18 @@ reset%resetMode%(charName, worldName, charExist, worldExist)
 Return
 
 resetMouse(charName, worldName, charExist, worldExist) {
-	global totalResets := resetCount("total")
+	OutputDebug, % charName " inside"
+	global globalResets := resetCount("global")
+	global presetResets := resetCount(presetName)
+	global currentResets := presetResets
 	global sessionResets := resetCount("session")
-	charName := StrReplace(charName, "TOTALRESETS", totalResets)
+	charName := StrReplace(charName, "GLOBALRESETS", globalResets)
+	charName := StrReplace(charName, "PRESETRESETS", presetResets)
 	charName := StrReplace(charName, "SESSIONRESETS", sessionResets)
-	worldName := StrReplace(worldName, "TOTALRESETS", totalResets)
+	worldName := StrReplace(worldName, "GLOBALRESETS", globalResets)
+	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
+		OutputDebug, % charName " after"
 	if (multiplayer = 1) {
 		sendMouse(2, 2.95)
 		if (multiplayerMethod = "Host") {
@@ -665,10 +1002,9 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 	}
-
-	if (worldSize = "Small" && downpatch != 1) { ;small is preselected on downpatch
+	if (worldSize = "Small" && version >= "1.4.4") { ;small is preselected on <1.4.4
 		sendMouse(2.4, 2.8) ;small
-	} else if (worldSize = "Medium" && downpatch = 1) { ;medium is preselected on current patch
+	} else if (worldSize = "Medium" && version < "1.4.4") { ;medium is preselected on 1.4.4+
 		sendMouse(2, 2.8) ;medium
 	} else if (worldSize = "Large") {
 		sendMouse(1.67, 2.8) ;large
@@ -722,11 +1058,15 @@ GetClientSize(hWnd, ByRef w := "", ByRef h := "")
 
 
 ResetKeyboard(charName, worldName, charExist, worldExist) {
-	global totalResets := resetCount("total")
+	global globalResets := resetCount("global")
+	global presetResets := resetCount(presetName)
+	global currentResets := presetResets
 	global sessionResets := resetCount("session")
-	charName := StrReplace(charName, "TOTALRESETS", totalResets)
+	charName := StrReplace(charName, "GLOBALRESETS", globalResets)
+	charName := StrReplace(charName, "PRESETRESETS", presetResets)
 	charName := StrReplace(charName, "SESSIONRESETS", sessionResets)
-	worldName := StrReplace(worldName, "TOTALRESETS", totalResets)
+	worldName := StrReplace(worldName, "GLOBALRESETS", globalResets)
+	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
 
 	if (multiplayer = 1) {
@@ -837,7 +1177,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	if (worldSize = "Large") {
 		sendKey("space")
 	}
-	if (worldSize = "Medium" && downpatch = 1)
+	if (worldSize = "Medium" && version < "1.4.4")
 	{
 		sendKey("left")
 		sendKey("space")
@@ -856,7 +1196,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		sendKey("down")
 	}
 	sendKey("down") ;move to small
-	if (worldSize = "Small" && downpatch = 0) {
+	if (worldSize = "Small" && version >= "1.4.4") {
 		sendKey("space") ;select small
 	}
 		if (worldDifficulty = "Journey" && charDifficulty = "Journey") {
@@ -904,19 +1244,27 @@ sendKey(key, times:=1, wait:="", modifier:="") {
 }
 
 resetCount(resetType) {
-	filePath := Format("resets/{1}.txt", resetType)
-	if (!FileExist(resets)) {
+	currentPath := "resets/current_resets.txt"
+	filePath := Format("resets/{1}_resets.txt", resetType)
+	if (!FileExist("resets")) {
 		FileCreateDir, resets
 	}
 	if (!FileExist(filePath)) {
 		FileAppend, 0, %filePath%
 	}
+	if (!FileExist(currentPath)) {
+		FileAppend, 0, %currentPath%
+	}
 
-	FileRead num, %filePath%
-	num++
+	FileRead resets, %filePath%
+	resets++
 	fileDelete, %filePath%
-	fileAppend, %num%, %filePath%
-	return num
+	fileAppend, %resets%, %filePath%
+	if (resetType = presetName) {
+		fileDelete, %currentPath%
+		fileAppend, %resets%, %currentPath%
+	}
+	return resets
 }
 
 splitCleanup() {
