@@ -288,7 +288,7 @@ LoadSettings() {
 	IniRead, presetName, settings.ini, settings, presetName, Default
 	IniRead, preset_Array, settings.ini, settings, preset_Array, Default
 
-	if (presetName = "Default" || preset_Array = "Default") {
+	if (presetName = "" || preset_Array = "") {
 		presetName := "Default"
 		IniWrite, %presetName%, settings.ini, settings, presetName
 		preset_Array := "Default"
