@@ -41,9 +41,9 @@ global preset_Array := []
 global preset_ArrayString
 
 
-global macroSettings_Array := ["dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
+global macroSettings_Array := ["terrariaSteamDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
 global categorySettings_Array := ["version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
-global settings_Array := ["dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
+global settings_Array := ["terrariaSteamDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
 
 global resetMode_Array := ["Keyboard", "Mouse"]
 global charDifficulty_Array := ["Journey", "Classic", "Mediumcore", "Hardcore"]
@@ -219,10 +219,16 @@ WM_MOUSEMOVE()
 }
 
 TerrariaDirectoryExplore:
-FileSelectFolder, terrariaDir,, Select root Terraria folder
+FileSelectFolder, terrariaDir,, Select Terrarias save folder
 GuiControl,, terrariaDir, %terrariaDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaDir%, settings.ini, macro, terrariaDir
+Return
+TerrariaSteamDirectoryExplore:
+FileSelectFolder, terrariaSteamDir,, Select Terrarias Steam folder
+GuiControl,, terrariaSteamDir, %terrariaSteamDir%
+Gui, Submit, Nohide
+IniWrite, %terrariaSteamDir%, settings.ini, macro, terrariaSteamDir
 Return
 
 MenuCheckToggle:
@@ -554,7 +560,7 @@ Settings:
 Gui, Settings:New, +OwnerMain
 Gui, Main:+Disabled
 
-Gui, Add, GroupBox, h162 w170 Center Section, Settings
+Gui, Add, GroupBox, h184 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
 	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
@@ -567,14 +573,20 @@ Gui, Add, GroupBox, h162 w170 Center Section, Settings
 	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
 	Gui, Add, Checkbox, vdontShowUnsavedPopup gGUISaver xs+15 yp+22 checked%dontShowUnsavedPopup%, Don't show unsaved popup
 	dontShowUnsavedPopup_TT := "Skip the unsaved preset popup when your preset has unsaved changes."
+	Gui, Add, Checkbox, vdisableSeasons gGUISaver xs+15 yp+22 checked%disableSeasons%, Disable seasonal events
+	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active. Does not effect other programs."
 
-Gui, Add, GroupBox, h85 w170 Section Center xs ys+170, Terraria Directory:
+Gui, Add, GroupBox, h185 w170 Section Center xs ys+192, Terraria Directories:
+	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
 	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
+	Gui, Add, Text, xs+15 yp+30 vterrariaSteamDirText, Steam Directory:
+	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaSteamDir gGUISaver, %terrariaSteamDir%
+	Gui, Add, Button, w140 gTerrariaSteamDirectoryExplore, Explore
 
 
 
-Gui, Add, GroupBox, h152 w170 Section Center xs ys+93, Resets
+Gui, Add, GroupBox, h152 w170 Section Center xs ys+193, Resets
 	Gui, Add, Text, xs+15 ys+22 vglobalResetsText, Global Resets:
 	Gui, Add, Text, xs+100 yp vglobalResetsNum w57, %globalResets%
 	Gui, Add, Edit, xp-2 yp-2 vglobalResets w57 Hidden, %globalResets%
@@ -900,6 +912,12 @@ OutputDebug, % "Ran Hotkey label"
 if (autoClose = 1) {
 	SetTimer, AutoClose, 10000
 }
+
+if (disableSeasons = 1) {
+	Run, %ComSpec% /c "RunAsDate.exe /movetime 01\01\2023 Attach:"%terrariaSteamDir%\Terraria.exe"", %A_ScriptDir%/utils
+	OutputDebug, % "ran RunAsDate"
+}
+
 #IfWinActive ahk_exe Terraria.exe
 if (passthrough = 1) {
 Hotkey, ~%resetKeybind%, Reset
