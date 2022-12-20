@@ -593,7 +593,7 @@ Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
 
 
 
-Gui, Add, GroupBox, h152 w170 Section Center xs ys+193, Resets
+Gui, Add, GroupBox, h148 w170 Section Center xs ys+193, Resets
 	Gui, Add, Text, xs+15 ys+22 vglobalResetsText, Global Resets:
 	Gui, Add, Text, xs+100 yp vglobalResetsNum w57, %globalResets%
 	Gui, Add, Edit, xp-2 yp-2 vglobalResets w57 Hidden, %globalResets%
