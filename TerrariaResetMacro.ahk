@@ -944,7 +944,6 @@ Hotkey, %resetKeybind%, Reset
 Return
 
 Reset:
-splitCleanup()
 charExist := FileExist(playerDir "\*.plr")
 worldExist := FileExist(worldDir "\*.wld")
 if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
@@ -1300,9 +1299,4 @@ resetCount(resetType) {
 		fileAppend, %resets%, %currentPath%
 	}
 	return resets
-}
-
-splitCleanup() {
-	FileDelete, %A_MyDocuments%/LiveSplit/_Terraria.log
-	FileAppend,, %A_MyDocuments%/LiveSplit/_Terraria.log
 }
