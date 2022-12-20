@@ -41,9 +41,9 @@ global preset_Array := []
 global preset_ArrayString
 
 
-global macroSettings_Array := ["terrariaSteamDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
+global macroSettings_Array := ["runOnStart","terrariaSteamDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
 global categorySettings_Array := ["version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
-global settings_Array := ["terrariaSteamDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
+global settings_Array := ["runOnStart","terrariaSteamDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
 
 global resetMode_Array := ["Keyboard", "Mouse"]
 global charDifficulty_Array := ["Journey", "Classic", "Mediumcore", "Hardcore"]
@@ -62,6 +62,11 @@ OnExit("Exit")
 if (!FileExist(settings.ini)) {
 	FileAppend,, settings.ini
 }
+
+if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 1231) {
+	global seasonalActive := 1
+}
+
 
 LoadSettings()
 
@@ -222,13 +227,13 @@ TerrariaDirectoryExplore:
 FileSelectFolder, terrariaDir,, Select Terrarias save folder
 GuiControl,, terrariaDir, %terrariaDir%
 Gui, Submit, Nohide
-IniWrite, %terrariaDir%, settings.ini, macro, terrariaDir
+IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 Return
 TerrariaSteamDirectoryExplore:
 FileSelectFolder, terrariaSteamDir,, Select Terrarias Steam folder
 GuiControl,, terrariaSteamDir, %terrariaSteamDir%
 Gui, Submit, Nohide
-IniWrite, %terrariaSteamDir%, settings.ini, macro, terrariaSteamDir
+IniWrite, %terrariaSteamDir%, settings.ini, settings, terrariaSteamDir
 Return
 
 MenuCheckToggle:
@@ -560,23 +565,25 @@ Settings:
 Gui, Settings:New, +OwnerMain
 Gui, Main:+Disabled
 
-Gui, Add, GroupBox, h184 w170 Center Section, Settings
+Gui, Add, GroupBox, h206 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
-	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and livesplit reset keys to the same key."
+	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and timer reset keys to the same key."
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
 	showOnStart_TT := "Whether the macro GUI shows on start. The GUI can be opened at any time from the tray icon."
 	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move player && world files
 	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
 	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
-	clearServers_TT := "Clear server history when running multiplayer (only takes effect after game restart)."
+	clearServers_TT := "Clear server history when running multiplayer. (only takes effect after game restart)"
 	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
 	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
 	Gui, Add, Checkbox, vdontShowUnsavedPopup gGUISaver xs+15 yp+22 checked%dontShowUnsavedPopup%, Don't show unsaved popup
 	dontShowUnsavedPopup_TT := "Skip the unsaved preset popup when your preset has unsaved changes."
+	Gui, Add, Checkbox, vrunOnStart gGUISaver xs+15 yp+22 checked%runOnStart%, Run Terraria on start
+	runOnStart_TT := "Run Terraria when the macro starts. (Requires Steam directory)"
 	Gui, Add, Checkbox, vdisableSeasons gGUISaver xs+15 yp+22 checked%disableSeasons%, Disable seasonal events
-	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active. Does not effect other programs."
+	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active. Does not effect other programs. (Requires Steam directory)"
 
-Gui, Add, GroupBox, h185 w170 Section Center xs ys+192, Terraria Directories:
+Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
 	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
@@ -913,10 +920,20 @@ if (autoClose = 1) {
 	SetTimer, AutoClose, 10000
 }
 
-if (disableSeasons = 1) {
+if (!WinExist("ahk_exe terraria.exe")) {
+	if (runOnStart = 1 && disableSeasons = 1 && seasonalActive = 1) {
+		Run, %ComSpec% /c "RunAsDate.exe /movetime 01\01\2023 "%terrariaSteamDir%\Terraria.exe"", %A_ScriptDir%/utils
+		OutputDebug, % "Ran RunAsDate & " terrariaSteamDir "\Terraria.exe"
+	} else if (runOnStart = 1) {
+		Run, "%terrariaSteamDir%\Terraria.exe"
+		OutputDebug, % "Ran " terrariaSteamDir "\Terraria.exe"
+	}
+} else if (disableSeasons = 1 && seasonalActive = 1 && hasLaunchedTerraria != 1) {
 	Run, %ComSpec% /c "RunAsDate.exe /movetime 01\01\2023 Attach:"%terrariaSteamDir%\Terraria.exe"", %A_ScriptDir%/utils
-	OutputDebug, % "ran RunAsDate"
+	OutputDebug, % "ran RunAsDate:Attach"
 }
+
+global hasLaunchedTerraria := 1
 
 #IfWinActive ahk_exe Terraria.exe
 if (passthrough = 1) {
