@@ -70,6 +70,8 @@ if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 
 
 LoadSettings()
 
+terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
+
 global playerDir := terrariaDir "\Players"
 global worldDir := terrariaDir "\Worlds"
 
@@ -77,7 +79,7 @@ FileDelete, resets/session_resets.txt
 FileAppend, 0, resets/session_resets.txt
 sessionResets := 0
 
-requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName"
+requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
 
 if (moveFiles = 1 || moveFiles = 2) {
 	MoveFiles()
@@ -117,7 +119,9 @@ Gui, Main:New
 
 	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
+		resetMode_Mouse_TT := "Uses the cursor to reset."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
+		resetMode_Keyboard_TT := "Uses the keyboard to reset. (Bug): The first character may have to be made manually."
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
 		Gui, Add, Text, xs+15 ys+18, Keybind:
@@ -133,22 +137,27 @@ Gui, Main:New
 		Gui, Add, Edit, w110 vkeyWait gGUISaver, %keyWait%
 		keyWait_TT := "The time between key presses. Increase if the macro is missing inputs."
 
-	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Category:
+	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, Edit, x+m yp-2 w60 vversion gGUISaver, %version%
+		version_TT := "Terraria game version. Versions before 1.4.4 use a different version of the macro."
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
 		
 	Gui, Add, GroupBox, Center Section xs ym+285 h50, Character Name:
 		Gui, Add, Edit, xp+15 yp+18 r1 w110 vcharName gGUISaver, %charName%
-		charName_TT := "Can use TOTALRESETS and SESSIONRESETS variables."
+		charName_TT := "Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, Character Difficulty:
 		Gui, Add, Button, xp+15 yp+18 w20 vcharDifficulty_Journey gGUISaver, J
+		charDifficulty_Journey_TT := "Journey"
 		Gui, Add, Button, x+m w20 vcharDifficulty_Classic gGUISaver, C
+		charDifficulty_Classic_TT := "Classic"
 		Gui, Add, Button, x+m w20 vcharDifficulty_Mediumcore gGUISaver, M
+		charDifficulty_Mediumcore_TT := "Mediumcore"
 		Gui, Add, Button, x+m w20 vcharDifficulty_Hardcore gGUISaver, H
+		charDifficulty_Hardcore_TT := "Hardcore"
 
 	Gui, Add, GroupBox, Center Section xs ys+60 h110, Character Style:
 		Gui, Add, Button, xp+15 yp+18 w50 vcharStyle_Default gGUISaver, Default
@@ -162,7 +171,9 @@ Gui, Main:New
 		Gui, Add, Button, xs ys+66 w140 h40 vsettings gSettings, Settings
 		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings:
 			Gui, Add, Button, xs+15 yp+22 w50 vmultiplayerMethod_Host gGUISaver, Host
+			multiplayerMethod_Host_TT := "Makes you the host."
 			Gui, Add, Button, x+m yp w50 vmultiplayerMethod_Join gGUISaver, Join
+			multiplayerMethod_Join_TT := "Makes you join the IP set below."
 			Gui, Add, Text, xs+15 yp+26 vIPText, IP:
 			Gui, Add, Edit, xp yp+18 r1 w110 vIP gGUISaver, %IP%
 
@@ -170,20 +181,30 @@ Gui, Main:New
 
 	Gui, Add, GroupBox, Center xs+150 ym+285 Section h50, World Name:
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
-		worldName_TT := "Leave blank for random. Can use TOTALRESETS and SESSIONRESETS variables."
+		worldName_TT := "Leave blank for random. Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
 		Gui, Add, Button, xp+15 yp+18 w20 vworldDifficulty_Journey gGUISaver, J
+		worldDifficulty_Journey_TT := "Journey"
 		Gui, Add, Button, x+m w20 vworldDifficulty_Classic gGUISaver, C
+		worldDifficulty_Classic_TT := "Classic"
 		Gui, Add, Button, x+m w20 vworldDifficulty_Expert gGUISaver, E
+		worldDifficulty_Expert_TT := "Expert"
 		Gui, Add, Button, x+m w20 vworldDifficulty_Master gGUISaver, M
+		worldDifficulty_Master_TT := "Master"
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Size:
 		Gui, Add, Button, xp+15 yp+18 w30 vworldSize_Small gGUISaver, S
+		worldSize_Small_TT := "Small"
 		Gui, Add, Button, x+m w30 vworldSize_Medium gGUISaver, M
+		worldSize_Medium_TT := "Medium"
 		Gui, Add, Button, x+m w30 vworldSize_Large gGUISaver, L
+		worldSize_Large_TT := "Large"
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Evil:
 		Gui, Add, Button, xp+15 yp+18 w30 vworldEvil_Random gGUISaver, Ran
+		worldEvil_Random_TT := "Random"
 		Gui, Add, Button, x+m w30 vworldEvil_Crimson gGUISaver, Crim
+		worldEvil_Crimson_TT := "Crimson"
 		Gui, Add, Button, x+m w30 vworldEvil_Corruption gGUISaver, Corr
+		worldEvil_Corruption_TT := "Corruption"
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Seed:
 		Gui, Add, Edit,r1 vworldSeed gGUISaver w110 xp+15 yp+18, %worldSeed%
 		worldSeed_TT := "Leave blank for random."
@@ -590,9 +611,11 @@ Gui, Add, GroupBox, h206 w170 Center Section, Settings
 Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
+	terrariaDir_TT := "Terraria saves directory. Usually in the 'My Games' folder. Selected folder should be 'Terraria'."
 	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
 	Gui, Add, Text, xs+15 yp+30 vterrariaSteamDirText, Steam Directory:
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaSteamDir gGUISaver, %terrariaSteamDir%
+	terrariaSteamDir_TT := "Terraria Steam directory. Selected folder should be 'Terraria'."
 	Gui, Add, Button, w140 gTerrariaSteamDirectoryExplore, Explore
 
 
