@@ -292,20 +292,13 @@ TrayLoadPreset(presetToLoad) {
 			Menu, PresetMenu, Uncheck, %value%
 		}
 	}
-	LoadPreset(1)
+	LoadPreset("tray")
 }
 
 LoadSettings() {
 	OutputDebug, % "Loading settings..."
 	IniRead, presetName, settings.ini, settings, presetName, Default
 	IniRead, preset_Array, settings.ini, settings, preset_Array, Default
-
-	if (presetName = "" || preset_Array = "") {
-		presetName := "Default"
-		IniWrite, %presetName%, settings.ini, settings, presetName
-		preset_Array := "Default"
-		IniWrite, %preset_Array%, settings.ini, settings, preset_Array
-	}
 
 	FileRead, globalResets, resets/global_resets.txt
 	FileRead, presetResets, resets/%presetResets%_resets.txt
@@ -336,9 +329,9 @@ LoadSettings() {
 		}
 		%settingName% := setting
 	}
-terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
-global playerDir := terrariaDir "\Players"
-global worldDir := terrariaDir "\Worlds"
+	terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
+	global playerDir := terrariaDir "\Players"
+	global worldDir := terrariaDir "\Worlds"
 }
 
 SavePreset() {
@@ -421,7 +414,7 @@ LoadPreset(fromTray:=0) {
 			FileAppend, %presetResets%, resets/current_resets.txt
 			FileDelete, resets/category.txt
 			FileAppend, %presetName%, resets/category.txt
-			if (fromTray != 1) {
+			if (fromTray != "tray") {
 			GUIInit()
 			}
 		}
@@ -653,7 +646,6 @@ if (editResetsVar = 1) {
 } else {
 	GuiControl,, editResets, Edit Resets
 	Gui, Submit, Nohide
-	OutputDebug, % "GR " presetResetsNum
 	GuiControl,, globalResetsNum, %globalResets%
 	GuiControl,, presetResetsNum, %presetResetsSettings%
 	GuiControl,, sessionResetsNum, %sessionResets%
@@ -687,6 +679,12 @@ GuiControl, Hide, totalResetsEdit
 GuiControl, Hide, sessionResetsEdit
 GuiControl, Hide, saveEditResets
 Gui, Submit, Nohide
+FileDelete, resets/global_resets.txt
+FileAppend, %globalResets%, resets/global_resets.txt
+FileDelete, resets/%resetSelection%_resets.txt
+FileAppend, %presetResets%, resets/%resetSelection%_resets.txt
+FileDelete, resets/session_resets.txt
+FileAppend, %sessionResets%, resets/session_resets.txt
 
 Return
 
@@ -977,7 +975,7 @@ Reset:
 charExist := FileExist(playerDir "\*.plr")
 worldExist := FileExist(worldDir "\*.wld")
 if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
-	FileDelete, C:/Users/interp/Documents/My Games/Terraria/servers.dat
+	FileDelete, %terrariaDir%/servers.dat
 }
 global oldClipboard := ClipboardAll
 
