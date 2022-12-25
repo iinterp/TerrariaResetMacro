@@ -70,20 +70,11 @@ if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 
 
 LoadSettings()
 
-terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
-
-global playerDir := terrariaDir "\Players"
-global worldDir := terrariaDir "\Worlds"
-
 FileDelete, resets/session_resets.txt
 FileAppend, 0, resets/session_resets.txt
 sessionResets := 0
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
-
-if (moveFiles = 1 || moveFiles = 2) {
-	MoveFiles()
-}
 
 If (WinExist(terraria.exe)) {
 terrariaHasExisted := 1
@@ -345,6 +336,9 @@ LoadSettings() {
 		}
 		%settingName% := setting
 	}
+terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
+global playerDir := terrariaDir "\Players"
+global worldDir := terrariaDir "\Worlds"
 }
 
 SavePreset() {
@@ -811,6 +805,7 @@ SettingsGuiClose() {
 }
 
 MoveFiles() {
+	global
 	OutputDebug, % "Running MoveFiles() " moveFiles
 	if !FileExist(playerDir "\_Temp") {
 		FileCreateDir, %playerDir%\_Temp
@@ -940,8 +935,10 @@ updateChecker() {
 
 
 
-
 Hotkey:
+if (moveFiles = 1 || moveFiles = 2) {
+	MoveFiles()
+}
 OutputDebug, % "Ran Hotkey label"
 if (autoClose = 1) {
 	SetTimer, AutoClose, 10000
