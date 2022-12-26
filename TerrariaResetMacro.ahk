@@ -332,6 +332,7 @@ LoadSettings() {
 	terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
 	global playerDir := terrariaDir "\Players"
 	global worldDir := terrariaDir "\Worlds"
+	SavePreset()
 }
 
 SavePreset() {
