@@ -209,8 +209,6 @@ Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%macroVersion%
 Gui, Show, AutoSize Center, Terraria Reset Macro
 OnMessage(0x0200, "WM_MOUSEMOVE")
 
-firstLaunch := 0
-
 if (checkedForUpdate != 1) {
 	updateChecker()
 }
@@ -935,7 +933,7 @@ updateChecker() {
 
 
 Hotkey:
-if (moveFiles = 1 || moveFiles = 2) {
+if (moveFiles = 1 && firstLaunch != 0 || moveFiles = 2 && firstLaunch != 0) {
 	MoveFiles()
 }
 OutputDebug, % "Ran Hotkey label"
@@ -963,6 +961,7 @@ if (!WinExist("ahk_exe terraria.exe")) {
 }
 
 global hasLaunchedTerraria := 1
+firstLaunch := 0
 
 #IfWinActive ahk_exe Terraria.exe
 if (passthrough = 1) {
