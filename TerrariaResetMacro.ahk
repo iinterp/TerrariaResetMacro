@@ -983,7 +983,6 @@ reset%resetMode%(charName, worldName, charExist, worldExist)
 Return
 
 resetMouse(charName, worldName, charExist, worldExist) {
-	OutputDebug, % charName " inside"
 	global globalResets := resetCount("global")
 	global presetResets := resetCount(presetName)
 	global currentResets := presetResets
@@ -994,7 +993,6 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "GLOBALRESETS", globalResets)
 	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
-		OutputDebug, % charName " after"
 	if (multiplayer = 1) {
 		sendMouse(2, 2.95)
 		if (multiplayerMethod = "Host") {
@@ -1094,17 +1092,15 @@ sendMouse(X, Y, wait:="") {
 	Y := winHeight / Y
 
 	if (wait != "") {
-	keyWaitOld := keyWait
-	keyWait := wait * waitMultiplier
+	wait := wait * waitMultiplier
+	} else {
+		wait := keyWait
 	}
 	MouseMove, %X%, %Y%, 0
 	Send, {click down}
 	Sleep, %keyDuration%
 	Send, {click up}
-	Sleep, %keyWait%
-	if (wait != "") {
-		keyWait := keyWaitOld
-	}
+	Sleep, %wait%
 }
 
 
@@ -1291,17 +1287,15 @@ paste(paste, times:=1, wait:="") {
 }
 sendKey(key, times:=1, wait:="", modifier:="") {
 	if (wait != "") {
-	keyWaitOld := keyWait
-	keyWait := wait * waitMultiplier
+	wait := wait * waitMultiplier
+	} else {
+		wait := keyWait
 	}
 	loop, %times% {
 		send, %modifier%{%key% down}
 		sleep, %keyDuration%
 		send, %modifier%{%key% up}
-		sleep, %keyWait%
-	}
-	if (wait != "") {
-		keyWait := keyWaitOld
+		sleep, %wait%
 	}
 }
 
