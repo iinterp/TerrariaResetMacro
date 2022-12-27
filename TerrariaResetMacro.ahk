@@ -594,6 +594,10 @@ Gui, Add, GroupBox, h206 w170 Center Section, Settings
 	Gui, Add, Checkbox, vdisableSeasons gGUISaver xs+15 yp+22 checked%disableSeasons%, Disable seasonal events
 	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active. Does not effect other programs. (Requires Steam directory)"
 
+	if (dontShowUnsavedPopup != 0) {
+		GuiControl,, dontShowUnsavedPopup, 1
+	}
+
 Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
@@ -730,7 +734,7 @@ if (dontShowUnsavedPopup = "Load") {
 
 		for index, preset in (preset_Array) {
 			if (preset = presetName) {
-			GuiControl, Choose, presetName, %index%
+			GuiControl, Choose, unsavedPresetName, %index%
 			}
 		}
 
