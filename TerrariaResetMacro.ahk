@@ -410,6 +410,7 @@ SavePreset() {
 	for index, value in (preset_Array) {
 		if (preset_Array[index] = presetName) {
 			OutputDebug, % "Already saved " presetName
+			SB_SetText("Saved Preset " presetName)
 			Return
 		}
 	}
