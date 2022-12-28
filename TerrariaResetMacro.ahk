@@ -262,6 +262,24 @@ if !InStr(FileExist(terrariaDir), "D") {
 
 Return
 
+WM_MOUSEMOVE()
+{
+    static CurrControl, PrevControl, _TT  ; _TT is kept blank for use by the ToolTip command below.
+    CurrControl := A_GuiControl
+    if (CurrControl != PrevControl and not InStr(CurrControl, " "))
+    {
+        ToolTip  ; Turn off any previous tooltip.
+        SetTimer, DisplayToolTip, 500
+        PrevControl := CurrControl
+    }
+    return
+
+    DisplayToolTip:
+    SetTimer, DisplayToolTip, Off
+    ToolTip % %CurrControl%_TT
+		return
+}
+
 IncorrectDirectory:
 Gui, IncorrectDirectory:New, +OwnerMain
 Gui, -SysMenu
