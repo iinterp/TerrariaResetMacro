@@ -72,11 +72,10 @@ if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 
 	global seasonalActive := 1
 }
 
+sessionResets := 0
+
 LoadSettings()
 
-FileDelete, resets/session_resets.txt
-FileAppend, 0, resets/session_resets.txt
-sessionResets := 0
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
 
@@ -354,13 +353,25 @@ LoadSettings() {
 	IniRead, presetName, settings.ini, settings, presetName, Default
 	IniRead, preset_Array, settings.ini, settings, preset_Array, Default
 
-	FileRead, globalResets, resets/global_resets.txt
-	FileRead, presetResets, resets/%presetResets%_resets.txt
-	FileRead, sessionResets, resets/session_resets.txt
-	FileDelete, resets/current_resets.txt
-	FileAppend, %presetResets%, resets/current_resets.txt
-	FileDelete, resets/category.txt
-	FileAppend, %presetName%, resets/category.txt
+	if FileExist("resets/_globalresets.txt") {
+		FileRead, globalResets, resets/_globalresets.txt
+	} else {
+		globalResets := 0
+		FileAppend, %globalResets%, resets/_globalresets.txt
+	}
+	if FileExist("resets/" presetName "_resets.txt") {
+		FileRead, presetResets, resets/%presetName%_resets.txt
+	} else {
+		presetResets := 0
+		FileAppend, %presetResets%, resets/%presetName%_resets.txt
+	}
+	
+	FileDelete, resets/_sessionresets.txt
+	FileAppend, %sessionResets%, resets/_sessionresets.txt
+	FileDelete, resets/_currentresets.txt
+	FileAppend, %presetResets%, resets/_currentresets.txt
+	FileDelete, resets/_category.txt
+	FileAppend, %presetName%, resets/_category.txt
 	
 	preset_ArrayString := preset_Array
 	preset_Array := StrSplit(preset_Array, "|")
@@ -473,10 +484,10 @@ LoadPreset(fromTray:=0) {
 			}
 			IniWrite, %presetName%, settings.ini, settings, presetName
 			FileRead, presetResets, resets/%presetName%_resets.txt
-			FileDelete, resets/current_resets.txt
-			FileAppend, %presetResets%, resets/current_resets.txt
-			FileDelete, resets/category.txt
-			FileAppend, %presetName%, resets/category.txt
+			FileDelete, resets/_currentresets.txt
+			FileAppend, %presetResets%, resets/_currentresets.txt
+			FileDelete, resets/_category.txt
+			FileAppend, %presetName%, resets/_category.txt
 			if (fromTray != "tray") {
 			GUIInit()
 			}
@@ -731,12 +742,12 @@ if (editResetsVar = 1) {
 	GuiControl,, presetResetsNum, %presetResetsSettings%
 	GuiControl,, sessionResetsNum, %sessionResets%
 
-	FileDelete, resets/global_resets.txt
-	FileAppend, %globalResets%, resets/global_resets.txt
+	FileDelete, resets/_globalresets.txt
+	FileAppend, %globalResets%, resets/_globalresets.txt
 	FileDelete, resets/%resetSelection%_resets.txt
 	FileAppend, %presetResetsSettings%, resets/%resetSelection%_resets.txt
-	FileDelete, resets/session_resets.txt
-	FileAppend, %sessionResets%, resets/session_resets.txt
+	FileDelete, resets/_sessionresets.txt
+	FileAppend, %sessionResets%, resets/_sessionresets.txt
 
 	if (presetName = resetSelection) {
 		OutputDebug, % presetName " = " resetSelection
@@ -760,12 +771,12 @@ GuiControl, Hide, totalResetsEdit
 GuiControl, Hide, sessionResetsEdit
 GuiControl, Hide, saveEditResets
 Gui, Submit, Nohide
-FileDelete, resets/global_resets.txt
-FileAppend, %globalResets%, resets/global_resets.txt
+FileDelete, resets/_globalresets.txt
+FileAppend, %globalResets%, resets/_globalresets.txt
 FileDelete, resets/%resetSelection%_resets.txt
 FileAppend, %presetResets%, resets/%resetSelection%_resets.txt
-FileDelete, resets/session_resets.txt
-FileAppend, %sessionResets%, resets/session_resets.txt
+FileDelete, resets/_sessionresets.txt
+FileAppend, %sessionResets%, resets/_sessionresets.txt
 
 Return
 
@@ -1436,7 +1447,7 @@ sendKey(key, times:=1, wait:="", modifier:="") {
 }
 
 resetCount(resetType) {
-	currentPath := "resets/current_resets.txt"
+	currentPath := "resets/_currentresets.txt"
 	filePath := Format("resets/{1}_resets.txt", resetType)
 	if (!FileExist("resets")) {
 		FileCreateDir, resets
