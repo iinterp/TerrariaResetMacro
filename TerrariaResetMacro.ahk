@@ -72,7 +72,6 @@ if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 
 	global seasonalActive := 1
 }
 
-
 LoadSettings()
 
 FileDelete, resets/session_resets.txt
@@ -117,11 +116,14 @@ Menu, Tray, Add, Exit, Exit
 if (showOnStart = 0) {
 	Goto Hotkey
 }
+
 OpenConfig:
 if (firstLaunch = 0) {
 	LoadSettings()
 }
+
 SetTimer, AutoClose, Off
+
 Gui, Settings:Submit
 Gui, Main:New
 
@@ -248,25 +250,37 @@ if (checkedForUpdate != 1) {
 	updateChecker()
 }
 
+if !InStr(FileExist(terrariaDir), "D") {
+	Goto IncorrectDirectory
+} else if !InStr(terrariaDir, "Terraria") {
+	Goto IncorrectDirectory
+} else if !InStr(FileExist(terrariaGameDir), "D") {
+	Goto IncorrectDirectory
+} else if !FileExist(terrariaGameDir "/Terraria.exe") {
+	Goto IncorrectDirectory
+}
+
 Return
 
-WM_MOUSEMOVE()
-{
-    static CurrControl, PrevControl, _TT  ; _TT is kept blank for use by the ToolTip command below.
-    CurrControl := A_GuiControl
-    if (CurrControl != PrevControl and not InStr(CurrControl, " "))
-    {
-        ToolTip  ; Turn off any previous tooltip.
-        SetTimer, DisplayToolTip, 500
-        PrevControl := CurrControl
-    }
-    return
+IncorrectDirectory:
+Gui, IncorrectDirectory:New, +OwnerMain
+Gui, -SysMenu
 
-    DisplayToolTip:
-    SetTimer, DisplayToolTip, Off
-    ToolTip % %CurrControl%_TT
-		return
-}
+Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
+	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
+	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
+	terrariaDir_TT := "Terraria saves directory. Usually in the 'My Games' folder. Selected folder should be 'Terraria'."
+	Gui, Add, Button, w320 gTerrariaDirectoryExplore, Explore
+	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory:
+	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaGameDir gGUISaver, %terrariaGameDir%
+	terrariaGameDir_TT := "Terraria game directory. Usually a Steam directory. Selected folder should be 'Terraria'."
+	Gui, Add, Button, w320 gTerrariaGameDirectoryExplore, Explore
+
+Gui, Add, Button, vsettingsSave gIncorrectDirectoryGuiClose xs yp+44 w350 h30, Save
+Gui, Show, AutoSize Center
+Gui, Main:+Disabled
+Return
+
 
 TerrariaDirectoryExplore:
 FileSelectFolder, terrariaDir,, Select Terrarias save folder
@@ -274,6 +288,7 @@ GuiControl,, terrariaDir, %terrariaDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 Return
+
 TerrariaGameDirectoryExplore:
 FileSelectFolder, terrariaGameDir,, Select Terrarias Game folder
 GuiControl,, terrariaGameDir, %terrariaGameDir%
@@ -618,6 +633,7 @@ MultiplayerToggler() {
 Settings:
 Gui, Settings:New, +OwnerMain
 Gui, Main:+Disabled
+Gui, -SysMenu
 
 Gui, Add, GroupBox, h206 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
@@ -836,13 +852,62 @@ if (!WinExist("ahk_exe terraria.exe") && terrariaHasExisted = 1) {
 }
 OutputDebug, % "Terraria hasn't existed"
 Return
+
+IncorrectDirectoryGuiClose() {
+	if !InStr(FileExist(terrariaDir), "D") {
+		MsgBox, % "Error with Save Directory:`n" terrariaDir "`nis not a valid folder! Make sure the folder is correct and exists."
+		Return
+	}
+
+	if !InStr(terrariaDir, "Terraria") {
+		MsgBox % "Error with Save Directory:`n" terrariaDir "`nis not the Terraria saves directory! Make sure the directory is 'Terraria'"
+		Return
+	}
+
+	if !InStr(FileExist(terrariaGameDir), "D") {
+		MsgBox, % "Error with Game Directory:`n" terrariaGameDir "`nis not a valid folder! Make sure the folder is correct and exists."
+		Return
+	}
+
+	if !FileExist(terrariaGameDir "/Terraria.exe") {
+		MsgBox, % "Error with Game Directory:`n" terrariaGameDir "`ndoes not contain Terraria.exe!"
+		Return
+	}
+
+	IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
+	IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
+
+	Gui, Main:-Disabled
+	Gui, IncorrectDirectory:Submit
+}
+
 SettingsGuiClose() {
+	if !InStr(FileExist(terrariaDir), "D") {
+		MsgBox, % "Error with Save Directory:`n" terrariaDir "`nis not a valid folder! Make sure the folder is correct and exists."
+		Return
+	}
+
+	if !InStr(terrariaDir, "Terraria") {
+		MsgBox % "Error with Save Directory:`n" terrariaDir "`nis not the Terraria saves directory! Make sure the directory is 'Terraria'"
+		Return
+	}
+
+	if !InStr(FileExist(terrariaGameDir), "D") {
+		MsgBox, % "Error with Game Directory:`n" terrariaGameDir "`nis not a valid folder! Make sure the folder is correct and exists."
+		Return
+	}
+
+	if !FileExist(terrariaGameDir "/Terraria.exe") {
+		MsgBox, % "Error with Game Directory:`n" terrariaGameDir "`ndoes not contain Terraria.exe!"
+		Return
+	}
+
 	for key, settingName in (macroSettings_Array) {
 		setting := %settingName%
 		IniWrite, %setting%, settings.ini, settings, %settingName%
 	}
 	Gui, Main:-Disabled
-	Gui, Submit
+	Gui, Settings:Submit
 }
 
 MoveFiles() {
