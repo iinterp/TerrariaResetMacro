@@ -109,6 +109,7 @@ Gui, Settings:Submit
 Gui, Main:New
 
 	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
+		resetMode_SB := "Reset Mode"
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
 		resetMode_Mouse_TT := "Uses the cursor to reset."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
@@ -118,29 +119,36 @@ Gui, Main:New
 		Gui, Add, Text, xs+15 ys+18, Keybind:
 		Gui, Add, Hotkey, w110 vresetKeybind gGUISaver, %resetKeybind%
 		resetKeybind_TT := "The keybind to press to activate the macro."
+		resetKeybind_SB := "Reset Keybind"
 		Gui, Add, Text, xp yp+26, Key Duration:
 		Gui, Add, Edit, w110 vkeyDuration gGUISaver, %keyDuration%
 		keyDuration_TT := "The time keys are held down for. Increase if the macro is missing inputs."
+		keyDuration_SB := "Key Duration"
 		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
 		Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
 		waitMultiplier_TT := "How long the macro should wait for loads. Increase if the macro is continuing too fast."
+		waitMultiplier_SB := "Wait Multiplier"
 		Gui, Add, Text, xp yp+26, Key Buffer:
 		Gui, Add, Edit, w110 vkeyWait gGUISaver, %keyWait%
 		keyWait_TT := "The time between key presses. Increase if the macro is missing inputs."
+		keyWait_SB := "Key Buffer"
 
 	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, Edit, x+m yp-2 w60 vversion gGUISaver, %version%
 		version_TT := "Terraria game version. Versions before 1.4.4 use a different version of the macro."
+		version_SB := "Version"
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
 		
 	Gui, Add, GroupBox, Center Section xs ym+285 h50, Character Name:
 		Gui, Add, Edit, xp+15 yp+18 r1 w110 vcharName gGUISaver, %charName%
 		charName_TT := "Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
+		charName_SB := "Character Name"
 
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, Character Difficulty:
+		charDifficulty_SB := "Character Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vcharDifficulty_Journey gGUISaver, J
 		charDifficulty_Journey_TT := "Journey"
 		Gui, Add, Button, x+m w20 vcharDifficulty_Classic gGUISaver, C
@@ -151,13 +159,17 @@ Gui, Main:New
 		charDifficulty_Hardcore_TT := "Hardcore"
 
 	Gui, Add, GroupBox, Center Section xs ys+60 h110, Character Style:
+		charStyle_SB := "Character Style"
 		Gui, Add, Button, xp+15 yp+18 w50 vcharStyle_Default gGUISaver, Default
 		Gui, Add, Button, x+m w50 vcharStyle_Random gGUISaver, Random
 		Gui, Add, Text,xs+15 yp+26, Paste Template:
 		Gui, Add, Edit, r2 w110 vcharStylePaste gGUISaver, %charStylePaste%
 		charStylePaste_TT := "Paste character template to use as style."
+		charStylePaste_SB := "Character Template"
 
 		Gui, Add, GroupBox, Center Section xs ys+120 h50, Multiplayer:
+			multiplayer_SB := "Multiplayer"
+			multiplayerMethod_SB := "Multiplayer method"
 			Gui, Add, Checkbox, vmultiplayer gGUISaver xs+15 yp+22 checked%multiplayer%, Multiplayer
 		Gui, Add, Button, xs ys+66 w140 h40 vsettings gSettings, Settings
 		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings:
@@ -166,14 +178,17 @@ Gui, Main:New
 			Gui, Add, Button, x+m yp w50 vmultiplayerMethod_Join gGUISaver, Join
 			multiplayerMethod_Join_TT := "Makes you join the IP set below."
 			Gui, Add, Text, xs+15 yp+26 vIPText, IP:
+			IP_SB := "IP"
 			Gui, Add, Edit, xp yp+18 r1 w110 vIP gGUISaver, %IP%
 
 ;----
 
 	Gui, Add, GroupBox, Center xs+150 ym+285 Section h50, World Name:
+		worldName_SB := "World Name"
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
 		worldName_TT := "Leave blank for random. Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
+		worldDifficulty_SB := "World Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vworldDifficulty_Journey gGUISaver, J
 		worldDifficulty_Journey_TT := "Journey"
 		Gui, Add, Button, x+m w20 vworldDifficulty_Classic gGUISaver, C
@@ -183,6 +198,7 @@ Gui, Main:New
 		Gui, Add, Button, x+m w20 vworldDifficulty_Master gGUISaver, M
 		worldDifficulty_Master_TT := "Master"
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Size:
+		worldSize_SB := "World Size"
 		Gui, Add, Button, xp+15 yp+18 w30 vworldSize_Small gGUISaver, S
 		worldSize_Small_TT := "Small"
 		Gui, Add, Button, x+m w30 vworldSize_Medium gGUISaver, M
@@ -190,6 +206,7 @@ Gui, Main:New
 		Gui, Add, Button, x+m w30 vworldSize_Large gGUISaver, L
 		worldSize_Large_TT := "Large"
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Evil:
+		worldEvil_SB := "World Evil"
 		Gui, Add, Button, xp+15 yp+18 w30 vworldEvil_Random gGUISaver, Ran
 		worldEvil_Random_TT := "Random"
 		Gui, Add, Button, x+m w30 vworldEvil_Crimson gGUISaver, Crim
@@ -197,6 +214,7 @@ Gui, Main:New
 		Gui, Add, Button, x+m w30 vworldEvil_Corruption gGUISaver, Corr
 		worldEvil_Corruption_TT := "Corruption"
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Seed:
+		worldSeed_SB := "World Seed"
 		Gui, Add, Edit,r1 vworldSeed gGUISaver w110 xp+15 yp+18, %worldSeed%
 		worldSeed_TT := "Leave blank for random."
 	Gui, Add, Button, xs ys+66 w140 h40 vSnQ gSnQ, Save
@@ -416,6 +434,7 @@ LoadPreset(fromTray:=0) {
 			if (fromTray != "tray") {
 			GUIInit()
 			}
+			SB_SetText("Set Preset to " presetName)
 		}
 	}
 }
@@ -507,9 +526,9 @@ GUISaver() {
 			IniWrite, %var%, settings.ini, settings, %varName%
 		}
 	}
-
+	varNameLog := varName "_SB"
 	OutputDebug, % "Set " varName " to " var
-	SB_SetText("Set " varName " to " var)
+	SB_SetText("Set " %varNameLog% " to " var)
 	Return
 }
 
