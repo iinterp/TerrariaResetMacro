@@ -3,6 +3,7 @@ author := "interp"
 
 #SingleInstance Force
 CoordMode, Mouse, Client
+SetWorkingDir %A_ScriptDir%
 
 global resetKeybind
 global passthrough
