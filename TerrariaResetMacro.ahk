@@ -36,6 +36,7 @@ global resetSelection
 global presetResetsNum
 global globalResets
 
+global unsavedPresetName
 global presetName
 global preset_Array := []
 global preset_ArrayString
@@ -352,6 +353,9 @@ LoadSettings() {
 }
 
 SavePreset() {
+	if (A_GuiControl = "saveUnsaved") {
+		presetName := unsavedPresetName
+	}
 	if (presetName ~= "\*|\|") {
 		MsgBox % "Preset name cannot contain these characters: `n * |"
 		Return
@@ -758,18 +762,15 @@ if (dontShowUnsavedPopup = "Load") {
 		}
 
 		Gui, Add, Checkbox, vdontShowUnsavedPopup, Don't show this again
-		Gui, Add, Button,x+m yp-3 w50 gLoadUnsaved, Load
-		Gui, Add, Button,x+m yp w50 gSaveUnsaved, Save
+		Gui, Add, Button,x+m yp-3 w50 vloadUnsaved gLoadUnsaved, Load
+		Gui, Add, Button,x+m yp w50 vsaveUnsaved gSaveUnsaved, Save
 		Gui, Show, Autosize Center, Unsaved Changes
 	Return
 
 SaveUnsaved:
 Gui, Main:-Disabled
 Gui, Submit
-for key, newSettingName in (settings_Array) {
-	newSetting := %newSettingName%
-	IniWrite, %newSetting%, settings.ini, %unsavedPresetName%_Settings, %newSettingName%
-}
+SavePreset()
 unsavedChanges := 0
 if (dontShowUnsavedPopup = 1) {
 	dontShowUnsavedPopup := "Save"
