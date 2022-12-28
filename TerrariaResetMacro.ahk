@@ -1001,9 +1001,8 @@ updateChecker() {
 		Gui, Updater:New, +OwnerMain
 			Gui, Add, Text,, There is a new update available.
 			Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
-			if (changeloglink != "") {
-				Gui, Add, Link, vchangelogLink, <a href="%changelogLink%">changelog</a>
-			}
+			updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
+			Gui, Add, Link, vchangelogLink, <a href="%updateChangelogLink%" >changelog</a>
 			Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
 			Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
 			Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
@@ -1024,7 +1023,8 @@ updateChecker() {
 		Return
 	
 		DownloadUpdate:
-		UrlDownloadToFile, https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/TerrariaResetMacro.ahk, %A_ScriptName%
+		updateDownloadLink := "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/release/" newMacroVersion "/TerrariaResetMacro.exe"
+		UrlDownloadToFile, %updateDownloadLink%, %A_ScriptName%
 		if (ErrorLevel != 0) {
 			msgbox Failed to download update.
 			}
