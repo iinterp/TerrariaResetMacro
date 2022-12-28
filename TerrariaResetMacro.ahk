@@ -1,5 +1,7 @@
-global macroVersion := 1.0.0
+global macroVersion := "1.0.0"
 author := "interp"
+
+FileDelete, old_TerrariaResetMacro.exe
 
 #SingleInstance Force
 CoordMode, Mouse, Client
@@ -1020,11 +1022,13 @@ updateChecker() {
 	global checkedForUpdate := 1
 	
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/version.txt", true)
+	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/update/version.txt", true)
 	whr.Send()
 	whr.WaitForResponse()
 	global newMacroVersion := whr.responseText
-	if (newMacroVersion !> macroVersion || newMacroVersion = ignoredMacroVersion) {
+	newMacroVersion_math := StrReplace(newMacroVersion, ".")
+	macroVersion_math := StrReplace(macroVersion, ".")
+	if (newMacroVersion_math <= macroVersion_math || newMacroVersion = ignoredMacroVersion) {
 		Return
 	}
 		Gui, Updater:New, +OwnerMain
@@ -1052,15 +1056,18 @@ updateChecker() {
 		Return
 	
 		DownloadUpdate:
-		updateDownloadLink := "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/release/" newMacroVersion "/TerrariaResetMacro.exe"
-		UrlDownloadToFile, %updateDownloadLink%, %A_ScriptName%
+		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/main/update/TerrariaResetMacro.exe?raw=true, new_%A_ScriptName%
 		if (ErrorLevel != 0) {
 			msgbox Failed to download update.
+			Gui, Main:-Disabled
+			Gui, Updater:Submit
+			Return
 			}
+		FileMove, TerrariaResetMacro.exe, old_TerrariaResetMacro.exe
+		FileMove, new_TerrariaResetMacro.exe, TerrariaResetMacro.exe
 		Gui, Main:-Disabled
 		Gui, Updater:Submit
 		Reload
-		Return
 }
 
 
