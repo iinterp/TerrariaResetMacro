@@ -1,4 +1,4 @@
-global macroVersion := "1.0.0"
+global macroVersion := "1.0.1"
 author := "interp"
 
 FileDelete, old_TerrariaResetMacro.exe
