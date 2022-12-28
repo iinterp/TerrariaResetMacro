@@ -32,6 +32,8 @@ global terrariaDir
 global showOnStart
 global version
 
+global firstMacroLaunch
+
 global resetSelection
 global presetResetsNum
 global globalResets
@@ -126,7 +128,7 @@ Gui, Main:New
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
 		resetMode_Mouse_TT := "Uses the cursor to reset."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
-		resetMode_Keyboard_TT := "Uses the keyboard to reset. (Bug): The first character may have to be made manually."
+		resetMode_Keyboard_TT := "Uses the keyboard to reset."
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
 		Gui, Add, Text, xs+15 ys+18, Keybind:
@@ -1020,6 +1022,7 @@ if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
 global oldClipboard := ClipboardAll
 
 reset%resetMode%(charName, worldName, charExist, worldExist)
+firstMacroLaunch := 0
 Return
 
 resetMouse(charName, worldName, charExist, worldExist) {
@@ -1167,6 +1170,13 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
 
+	if (charExist = "" && firstMacroLaunch != 0) { ;fix for first time launch with no chars // goes to achievements and back
+		sendKey("down", 2)
+		sendKey("space", 1, 200)
+		sendKey("down")
+		sendKey("space", 1, 200)
+	}
+
 	if (multiplayer = 1) {
 		sendKey("down") ;move to multiplayer
 		sendKey("space")
@@ -1174,12 +1184,12 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 			sendKey("down",2)
 		}
 	} else {
-	sendKey("up") ;move to single player
+		sendKey("up") ;move to single player
 	}
 	sendKey("space", 1, 120) ;select
 	if (charExist != "") {
-	sendKey("right", 4) ;move to delete char
-	sendKey("space", 2, 100) ;delete char
+		sendKey("right", 4) ;move to delete char
+		sendKey("space", 2, 100) ;delete char
 	}
 	sendKey("down") ;move to back
 	sendKey("right") ;move to new
