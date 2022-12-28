@@ -92,7 +92,19 @@ Menu, Tray, Add
 if (showOnStart = 1) {
 Menu, Tray, Check, Show Menu On Start
 }
-AddTrayPresets()
+
+for key, value in (preset_Array) {
+	Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+}
+
+for key, value in (preset_Array) {
+	if (presetName = value) {
+		Menu, PresetMenu, Check, %value%
+	} else {
+			Menu, PresetMenu, Uncheck, %value%
+	}
+}
+
 Menu, Tray, Add, Change Preset, :PresetMenu
 Menu, Tray, Add
 
@@ -273,23 +285,11 @@ GuiControl,, showOnStart, %showOnStart%
 Gui, Submit, Nohide
 Return
 
-AddTrayPresets() {
-	for key, value in (preset_Array) {
-		Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
-		if (value = presetName) {
-			Menu, PresetMenu, Check, %value%
-		} else {
-			Menu, PresetMenu, Uncheck, %value%
-		}
-	}
-}
-
 TrayLoadPreset(presetToLoad) {
 	presetName := presetToLoad
 	Gui, Main:Submit, Nohide
 	for key, value in (preset_Array) {
 		if (presetName = value) {
-			OutputDebug, % "Setting preset to " presetName
 			for key, settingName in (categorySettings_Array) {
 				setting := %settingName%
 				IniRead, defaultSetting, settings.ini, defaults, %settingName%
@@ -398,6 +398,10 @@ SavePreset() {
 	preset_ArrayString .= "|" . presetName
 	preset_Array.Push(presetName)
 
+	for key, value in (preset_Array) {
+		Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+	}
+
 	OutputDebug, % "Saved " presetName
 
 	if (presetResets = "") {
@@ -413,7 +417,6 @@ SavePreset() {
 		}
 	}
 	LoadPreset()
-	AddTrayPresets()
 }
 
 LoadPreset(fromTray:=0) {
@@ -421,6 +424,7 @@ LoadPreset(fromTray:=0) {
 	for key, value in (preset_Array) {
 		if (presetName = value) {
 			OutputDebug, % "Setting preset to " presetName
+			Menu, PresetMenu, Check, %value%
 			for key, settingName in (categorySettings_Array) {
 				setting := %settingName%
 				IniRead, defaultSetting, settings.ini, defaults, %settingName%
@@ -439,6 +443,8 @@ LoadPreset(fromTray:=0) {
 			GUIInit()
 			}
 			SB_SetText("Set Preset to " presetName)
+		} else {
+			Menu, PresetMenu, Uncheck, %value%
 		}
 	}
 }
@@ -448,6 +454,9 @@ DeletePreset() {
 		MsgBox % "You cannot delete all presets!"
 		Return
 	}
+
+	Menu, PresetMenu, Delete, %presetName%
+
 	for index, value in (preset_Array) {
 		if (value = presetName) {
 			preset_Array.RemoveAt(index)
@@ -466,6 +475,13 @@ DeletePreset() {
 	presetName := preset_Array[1]
 	GuiControl, Choose, presetName, 1
 	LoadPreset()
+	for key, value in (preset_Array) {
+		if (presetName = value) {
+		Menu, PresetMenu, Check, %value%
+	} else {
+			Menu, PresetMenu, Uncheck, %value%
+		}
+	}
 }
 
 GUISaver() {
