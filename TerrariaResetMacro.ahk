@@ -1,4 +1,4 @@
-global macroVersion := "1.0.0"
+global macroVersion := "1.0.1"
 author := "interp"
 
 FileDelete, old_TerrariaResetMacro.exe
@@ -767,9 +767,9 @@ Return
 
 SaveResets:
 GuiControl, Show, editResets
-GuiControl, Show, totalResetsNum
+GuiControl, Show, globalResetsNum
 GuiControl, Show, sessionResetsNum
-GuiControl, Hide, totalResetsEdit
+GuiControl, Hide, globalResetsEdit
 GuiControl, Hide, sessionResetsEdit
 GuiControl, Hide, saveEditResets
 Gui, Submit, Nohide
@@ -1131,7 +1131,7 @@ Return
 
 resetMouse(charName, worldName, charExist, worldExist) {
 	global globalResets := resetCount("global")
-	global presetResets := resetCount(presetName)
+	global presetResets := resetCountPreset()
 	global currentResets := presetResets
 	global sessionResets := resetCount("session")
 	charName := StrReplace(charName, "GLOBALRESETS", globalResets)
@@ -1264,7 +1264,7 @@ GetClientSize(hWnd, ByRef w := "", ByRef h := "")
 
 ResetKeyboard(charName, worldName, charExist, worldExist) {
 	global globalResets := resetCount("global")
-	global presetResets := resetCount(presetName)
+	global presetResets := resetCountPreset()
 	global currentResets := presetResets
 	global sessionResets := resetCount("session")
 	charName := StrReplace(charName, "GLOBALRESETS", globalResets)
@@ -1454,8 +1454,30 @@ sendKey(key, times:=1, wait:="", modifier:="") {
 }
 
 resetCount(resetType) {
+	filePath := "resets/_" resetType "resets.txt"
+	OutputDebug, % filePath
+	if (!FileExist("resets")) {
+		FileCreateDir, resets
+	}
+	if (!FileExist(filePath)) {
+		FileAppend, 0, %filePath%
+	}
+
+	FileRead resets, %filePath%
+	resets++
+	fileDelete, %filePath%
+	fileAppend, %resets%, %filePath%
+
+	fileDelete, %currentPath%
+	fileAppend, %resets%, %currentPath%
+
+	return resets
+}
+
+resetCountPreset() {
 	currentPath := "resets/_currentresets.txt"
-	filePath := Format("resets/{1}_resets.txt", resetType)
+	filePath := Format("resets/{1}_resets.txt", presetName)
+	OutputDebug, % filePath
 	if (!FileExist("resets")) {
 		FileCreateDir, resets
 	}
@@ -1470,9 +1492,9 @@ resetCount(resetType) {
 	resets++
 	fileDelete, %filePath%
 	fileAppend, %resets%, %filePath%
-	if (resetType = presetName) {
-		fileDelete, %currentPath%
-		fileAppend, %resets%, %currentPath%
-	}
+
+	fileDelete, %currentPath%
+	fileAppend, %resets%, %currentPath%
+
 	return resets
 }
