@@ -1,7 +1,12 @@
-global macroVersion := "1.0.1"
+global macroVersion := "1.0.2"
 author := "interp"
 
+if (A_ScriptName = "TerrariaResetMacro.exe") {
+	FileMove, TerrariaResetMacro.exe, TResetMacro.exe
+}
+
 FileDelete, old_TerrariaResetMacro.exe
+FileDelete, old_TResetMacro.exe
 
 #SingleInstance Force
 CoordMode, Mouse, Client
@@ -1056,15 +1061,17 @@ updateChecker() {
 		Return
 	
 		DownloadUpdate:
-		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/main/update/TerrariaResetMacro.exe?raw=true, new_%A_ScriptName%
+		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/main/update/TerrariaResetMacro.exe?raw=true, new_TResetMacro.exe
 		if (ErrorLevel != 0) {
 			msgbox Failed to download update.
 			Gui, Main:-Disabled
 			Gui, Updater:Submit
 			Return
 			}
-		FileMove, TerrariaResetMacro.exe, old_TerrariaResetMacro.exe
-		FileMove, new_TerrariaResetMacro.exe, TerrariaResetMacro.exe
+		FileMove, TerrariaResetMacro.exe, old_TResetMacro.exe
+		FileMove, TResetMacro.exe, old_TResetMacro.exe
+		FileMove, new_TerrariaResetMacro.exe, TResetMacro.exe
+		FileMove, new_TResetMacro.exe, TResetMacro.exe
 		Gui, Main:-Disabled
 		Gui, Updater:Submit
 		Reload
