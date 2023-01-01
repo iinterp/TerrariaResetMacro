@@ -966,14 +966,21 @@ MoveFiles() {
 
 	Loop, Files, %playerDir%\*, D F
 	{
-		if A_LoopFileName not in _Temp,_LastSession
-		FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp\%A_LoopFileName%
-		FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp
+		if (A_LoopFileAttrib = "D") {
+			if A_LoopFileName not in _Temp,_LastSession 
+				FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp\%A_LoopFileName%
+			} else {
+			FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp
+		}
 	}
 	Loop, Files, %playerDir%\_LastSession\*, D F
 	{
-		FileMoveDir, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
+		if (A_LoopFileAttrib = "D") {
+			if A_LoopFileName not in _Temp,_LastSession
+				FileMoveDir, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
+		} else {
 		FileMove, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\
+		}
 	}
 		Loop, Files, %worldDir%\*, F
 	{
@@ -987,14 +994,21 @@ MoveFiles() {
 } else if (moveFiles = 2) {
 		Loop, Files, %playerDir%\*, D F
 	{
-		if A_LoopFileName not in _Temp,_LastSession
-		FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession\%A_LoopFileName%
-		FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession
+		if (A_LoopFileAttrib = "D") {
+			if A_LoopFileName not in _Temp,_LastSession
+				FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession\%A_LoopFileName%
+		} else {
+			FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession
+		}
 	}
 		Loop, Files, %playerDir%\_Temp\*, D F
 	{
-		FileMoveDir, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
-		FileMove, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\
+		if (A_LoopFileAttrib = "D") {
+			if A_LoopFileName not in _Temp,_LastSession
+				FileMoveDir, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
+		} else {
+			FileMove, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\
+		}
 	}
 			Loop, Files, %worldDir%\*, F
 	{
