@@ -147,22 +147,22 @@ Gui, Main:New
 		resetKeybind_SB := "Reset Keybind"
 		Gui, Add, Text, xp yp+26, Key Duration:
 		Gui, Add, Edit, w110 vkeyDuration gGUISaver, %keyDuration%
-		keyDuration_TT := "The time keys are held down for. Increase if the macro is missing inputs."
+		keyDuration_TT := "The time keys are held down for.`nIncrease if the macro is missing inputs."
 		keyDuration_SB := "Key Duration"
 		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
 		Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
-		waitMultiplier_TT := "How long the macro should wait for loads. Increase if the macro is continuing too fast."
+		waitMultiplier_TT := "How long the macro should wait for loads.`nIncrease if the macro is continuing too fast."
 		waitMultiplier_SB := "Wait Multiplier"
 		Gui, Add, Text, xp yp+26, Key Buffer:
 		Gui, Add, Edit, w110 vkeyWait gGUISaver, %keyWait%
-		keyWait_TT := "The time between key presses. Increase if the macro is missing inputs."
+		keyWait_TT := "The time between key presses.`nIncrease if the macro is missing inputs."
 		keyWait_SB := "Key Buffer"
 
 	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, Edit, x+m yp-2 w60 vversion gGUISaver, %version%
-		version_TT := "Terraria game version. Versions before 1.4.4 use a different version of the macro."
+		version_TT := "Terraria game version.`nVersions before 1.4.4 use a different version of the macro."
 		version_SB := "Version"
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
@@ -211,7 +211,7 @@ Gui, Main:New
 	Gui, Add, GroupBox, Center xs+150 ym+285 Section h50, World Name:
 		worldName_SB := "World Name"
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
-		worldName_TT := "Leave blank for random. Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
+		worldName_TT := "Leave blank for random.`nCan use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
 		worldDifficulty_SB := "World Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vworldDifficulty_Journey gGUISaver, J
@@ -293,11 +293,11 @@ Gui, -SysMenu
 Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
-	terrariaDir_TT := "Terraria saves directory. Usually in the 'My Games' folder. Selected folder should be 'Terraria'."
+	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
 	Gui, Add, Button, w320 gTerrariaDirectoryExplore, Explore
 	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory:
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaGameDir gGUISaver, %terrariaGameDir%
-	terrariaGameDir_TT := "Terraria game directory. Usually a Steam directory. Selected folder should be 'Terraria'."
+	terrariaGameDir_TT := "Terraria game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
 	Gui, Add, Button, w320 gTerrariaGameDirectoryExplore, Explore
 
 Gui, Add, Button, vsettingsSave gIncorrectDirectoryGuiClose xs yp+44 w350 h30, Save
@@ -674,21 +674,21 @@ Gui, -SysMenu
 
 Gui, Add, GroupBox, h206 w170 Center Section, Settings
 	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
-	passthrough_TT := "Whether your keybind will still be recognized by other programs. Especially useful when binding your macro and timer reset keys to the same key."
+	passthrough_TT := "Whether your keybind will still be recognized by other programs.`nEspecially useful when binding your macro and timer reset keys to the same key."
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
-	showOnStart_TT := "Whether the macro GUI shows on start. The GUI can be opened at any time from the tray icon."
+	showOnStart_TT := "Whether the macro GUI shows on start.`nThe GUI can be opened at any time from the tray menu."
 	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move player && world files
 	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
 	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
-	clearServers_TT := "Clear server history when running multiplayer. (only takes effect after game restart)"
+	clearServers_TT := "Clear server history when running multiplayer.`n(only takes effect after game restart)"
 	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
 	autoClose_TT := "Automatically close the macro when Terraria is no longer running."
 	Gui, Add, Checkbox, vdontShowUnsavedPopup gGUISaver xs+15 yp+22 checked%dontShowUnsavedPopup%, Don't show unsaved popup
 	dontShowUnsavedPopup_TT := "Skip the unsaved preset popup when your preset has unsaved changes."
 	Gui, Add, Checkbox, vrunOnStart gGUISaver xs+15 yp+22 checked%runOnStart%, Run Terraria on start
-	runOnStart_TT := "Run Terraria when the macro starts. (Requires game directory)"
+	runOnStart_TT := "Run Terraria when the macro starts.`n(Requires game directory)"
 	Gui, Add, Checkbox, vdisableSeasons gGUISaver xs+15 yp+22 checked%disableSeasons%, Disable seasonal events
-	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active. Does not effect other programs. (Requires game directory)"
+	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active.`nDoes not effect other programs.`n(Requires game directory)"
 
 	if (dontShowUnsavedPopup != 0) {
 		GuiControl,, dontShowUnsavedPopup, 1
@@ -697,11 +697,11 @@ Gui, Add, GroupBox, h206 w170 Center Section, Settings
 Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
-	terrariaDir_TT := "Terraria saves directory. Usually in the 'My Games' folder. Selected folder should be 'Terraria'."
+	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
 	Gui, Add, Button, w140 gTerrariaDirectoryExplore, Explore
 	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory:
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaGameDir gGUISaver, %terrariaGameDir%
-	terrariaGameDir_TT := "Terraria game directory. Usually a Steam directory. Selected folder should be 'Terraria'."
+	terrariaGameDir_TT := "Terraria game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
 	Gui, Add, Button, w140 gTerrariaGameDirectoryExplore, Explore
 
 
