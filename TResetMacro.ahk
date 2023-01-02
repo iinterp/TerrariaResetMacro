@@ -1042,7 +1042,7 @@ updateChecker() {
 	global checkedForUpdate := 1
 	
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/update/version.txt", true)
+	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/develop/update/version.txt", true)
 	whr.Send()
 	whr.WaitForResponse()
 	global newMacroVersion := whr.responseText
@@ -1076,7 +1076,7 @@ updateChecker() {
 		Return
 	
 		DownloadUpdate:
-		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/main/update/TerrariaResetMacro.exe?raw=true, new_TResetMacro.exe
+		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/develop/update/TerrariaResetMacro.exe?raw=true, new_TResetMacro.exe
 		if (ErrorLevel != 0) {
 			msgbox Failed to download update.
 			Gui, Main:-Disabled
