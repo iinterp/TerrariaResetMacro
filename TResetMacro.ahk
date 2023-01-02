@@ -96,6 +96,7 @@ Menu, Tray, Add, Open Menu, OpenConfig
 Menu, Tray, Default, Open Menu
 Menu, Tray, Click, 1
 Menu, Tray, Tip, Terraria Reset Macro v%macroVersion%
+Menu, Tray, Add, Move .plr and .wld Files, MoveFiles
 Menu, Tray, Add, Show Menu On Start, MenuCheckToggle
 Menu, Tray, Add
 if (showOnStart = 1) {
@@ -678,7 +679,7 @@ Gui, Add, GroupBox, h206 w170 Center Section, Settings
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
 	showOnStart_TT := "Whether the macro GUI shows on start.`nThe GUI can be opened at any time from the tray menu."
 	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move player && world files
-	moveFiles_TT := "Moves your players and worlds to a new folder while the macro is running to avoid deleting them."
+	moveFiles_TT := "Automatically moves your players and worlds to a new folder while the macro is running to avoid deleting them.`nYou can move them at any time from the tray menu."
 	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
 	clearServers_TT := "Clear server history when running multiplayer.`n(only takes effect after game restart)"
 	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
