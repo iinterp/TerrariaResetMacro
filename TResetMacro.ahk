@@ -1046,11 +1046,20 @@ updateChecker() {
 	whr.Send()
 	whr.WaitForResponse()
 	global newMacroVersion := whr.responseText
-	newMacroVersion_math := StrReplace(newMacroVersion, ".")
-	macroVersion_math := StrReplace(macroVersion, ".")
-	if (newMacroVersion_math <= macroVersion_math || newMacroVersion = ignoredMacroVersion) {
+	newMacroVersion_array := StrSplit(newMacroVersion, ".")
+	macroVersion_array := StrSplit(macroVersion, ".")
+	if (newMacroVersion = ignoredMacroVersion) {
 		Return
 	}
+	if (newMacroVersion_array[1] = macroVersion_array[1]) {
+		if (newMacroVersion_array[2] = macroVersion_array[2]) {
+			if (newMacroVersion_array[3] = macroVersion_array[3]) {
+				OutputDebug, % "Macro up to date."
+				Return
+			}
+		}
+	}
+	OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
 		Gui, Updater:New, +OwnerMain
 			Gui, Add, Text,, There is a new update available.
 			Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
