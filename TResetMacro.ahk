@@ -98,7 +98,7 @@ Menu, Tray, Click, 1
 Menu, Tray, Tip, Terraria Reset Macro v%macroVersion%
 Menu, Tray, Add, Move .plr and .wld Files, MoveFiles
 Menu, Tray, Add, Show Menu On Start, MenuCheckToggle
-Menu, Tray, Add
+Menu, Tray, Add ;divider
 if (showOnStart = 1) {
 Menu, Tray, Check, Show Menu On Start
 }
@@ -116,7 +116,7 @@ for key, value in (preset_Array) {
 }
 
 Menu, Tray, Add, Change Preset, :PresetMenu
-Menu, Tray, Add
+Menu, Tray, Add ;divider
 
 Menu, Tray, Add, Exit, Exit
 
@@ -948,9 +948,22 @@ SettingsGuiClose() {
 	Gui, Settings:Submit
 }
 
-MoveFiles() {
+MoveFiles(comingFrom) {
 	global
-	OutputDebug, % "Running MoveFiles() " moveFiles
+
+	if (moveFilesVar = "") {
+		moveFilesVar := 1
+	}
+
+	if (comingFrom = "exit" && moveFilesVar != 2) {
+		Return
+	}
+
+	if (comingFrom = "auto" && moveFilesVar = 2) {
+		Return
+	}
+
+	OutputDebug, % "Running MoveFiles() " moveFilesVar
 	if !FileExist(playerDir "\_Temp") {
 		FileCreateDir, %playerDir%\_Temp
 	}
@@ -963,7 +976,7 @@ MoveFiles() {
 	if !FileExist(worldDir "\_LastSession") {
 		FileCreateDir, %worldDir%\_LastSession
 	}
-	if (moveFiles = 1) {
+	if (moveFilesVar = 1) {
 
 	Loop, Files, %playerDir%\*, D F
 	{
@@ -991,8 +1004,8 @@ MoveFiles() {
 	{
 		FileMove, %worldDir%\_LastSession\%A_LoopFileName%, %worldDir%\
 	}
-	moveFiles := 2
-} else if (moveFiles = 2) {
+	moveFilesVar := 2
+	} else if (moveFilesVar = 2) {
 		Loop, Files, %playerDir%\*, D F
 	{
 		if (A_LoopFileAttrib = "D") {
@@ -1019,10 +1032,9 @@ MoveFiles() {
 	{
 		FileMove, %worldDir%\_Temp\%A_LoopFileName%, %worldDir%\
 	}
-		moveFiles := 1
-}
-IniWrite, %moveFiles%, settings.ini, settings, moveFiles
-Return
+		moveFilesVar := 1
+	}
+	Return
 }
 
 Exit:
@@ -1034,7 +1046,7 @@ ExitApp
 Exit() {
 OutputDebug, % "Exit reason: " A_ExitReason
 Gui, Submit
-moveFiles()
+moveFiles("exit")
 Return
 }
 
@@ -1110,8 +1122,8 @@ updateChecker() {
 
 
 Hotkey:
-if (moveFiles = 1 && firstLaunch != 0 || moveFiles = 2 && firstLaunch != 0) {
-	MoveFiles()
+if (moveFiles = 1 && firstLaunch != 0) {
+	MoveFiles("auto")
 }
 OutputDebug, % "Ran Hotkey label"
 if (autoClose = 1) {
