@@ -83,6 +83,10 @@ sessionResets := 0
 
 LoadSettings()
 
+if (moveFiles = 2) {
+	moveFiles := 1
+	IniWrite, %moveFiles%, settings.ini, settings, moveFiles
+}
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
 
