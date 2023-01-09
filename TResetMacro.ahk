@@ -882,9 +882,7 @@ unsavedChanges := 0
 Return
 
 AutoClose:
-OutputDebug, % "Ran AutoClose"
 If (WinExist("ahk_exe terraria.exe")) {
-	OutputDebug, % "Terraria exists"
 	terrariaHasExisted := 1
 	Return
 }
