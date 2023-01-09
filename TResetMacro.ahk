@@ -151,7 +151,7 @@ Gui, Main:New
 		resetKeybind_TT := "The keybind to press to activate the macro."
 		resetKeybind_SB := "Reset Keybind"
 		Gui, Add, Text, xp yp+26, Key Duration:
-		Gui, Add, Edit, w110 vkeyDuration gGUISaver, %keyDuration%
+		Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
 		keyDuration_TT := "The time keys are held down for.`nIncrease if the macro is missing inputs."
 		keyDuration_SB := "Key Duration"
 		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
@@ -159,7 +159,7 @@ Gui, Main:New
 		waitMultiplier_TT := "How long the macro should wait for loads.`nIncrease if the macro is continuing too fast."
 		waitMultiplier_SB := "Wait Multiplier"
 		Gui, Add, Text, xp yp+26, Key Buffer:
-		Gui, Add, Edit, w110 vkeyWait gGUISaver, %keyWait%
+		Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
 		keyWait_TT := "The time between key presses.`nIncrease if the macro is missing inputs."
 		keyWait_SB := "Key Buffer"
 
@@ -714,13 +714,13 @@ Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
 Gui, Add, GroupBox, h148 w170 Section Center xs ys+193, Resets
 	Gui, Add, Text, xs+15 ys+22 vglobalResetsText, Global Resets:
 	Gui, Add, Text, xs+100 yp vglobalResetsNum w57, %globalResets%
-	Gui, Add, Edit, xp-2 yp-2 vglobalResets w57 Hidden, %globalResets%
+	Gui, Add, Edit, xp-2 yp-2 vglobalResets w57 Hidden Number, %globalResets%
 	Gui, Add, Text, xs+15 yp+22 vpresetResetsText, Preset Resets:
 	Gui, Add, Text, xs+100 yp vpresetResetsNum w57, %presetResets%
-	Gui, Add, Edit, xp-2 yp-2 vpresetResetsSettings w57 Hidden, %presetResets%
+	Gui, Add, Edit, xp-2 yp-2 vpresetResetsSettings w57 Hidden Number, %presetResets%
 	Gui, Add, Text, xs+15 yp+22 vsessionResetsText, Session Resets:
 	Gui, Add, Text, xs+100 yp vsessionResetsNum w57, %sessionResets%
-	Gui, Add, Edit, xp-2 yp-2 vsessionResets w57 Hidden, %sessionResets%
+	Gui, Add, Edit, xp-2 yp-2 vsessionResets w57 Hidden Number, %sessionResets%
 	Gui, Add, DropDownList, xs+15 yp+26 w140 vresetSelection gResetSelection, %preset_ArrayString%
 	Gui, Add, Button, xp yp+26 veditResets gEditResets w140, Edit Resets
 
