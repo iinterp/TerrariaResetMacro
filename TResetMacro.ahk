@@ -425,9 +425,7 @@ SavePreset() {
 		OutputDebug, % "No preset found"
 	}
 
-	if (charStyle = "Default" || charStyle = "Random") {
-		charStylePaste := ""
-	} else {
+	if (charStyle != "Default" && charStyle != "Random") {
 		charStylePaste := StrReplace(charStylePaste, "`n")
 		charStyle := "Paste"
 	}
@@ -559,6 +557,10 @@ GUISaver() {
 		MultiplayerToggler()
 	}
 
+	if (varName = "version") {
+		VersionToggler()
+	}
+
 	if (varName = "charStylePaste") {
 		var := StrReplace(charStylePaste, "`n")
 		charStyle := "Paste"
@@ -670,6 +672,64 @@ MultiplayerToggler() {
 		GuiControl, Show, SnQ
 	}
 	Gui, Main:Show, AutoSize, Terraria Reset Macro
+}
+
+VersionToggler() {
+	global version_array := StrSplit(version, ".")
+
+	if (version_array[2] <= 3 && version_array[2] != "") {
+		GuiControl, Hide, charDifficulty_Journey
+		GuiControl, Hide, worldDifficulty_Journey
+		GuiControl, Hide, worldDifficulty_Master
+		GuiControl, Disable, charStylePaste
+		
+		GuiControl, Move, charDifficulty_Classic, w30 x+25
+		GuiControl, Move, charDifficulty_Mediumcore, w30 x+65
+		GuiControl, Move, charDifficulty_Hardcore, w30 x+105
+
+		GuiControl, Move, worldDifficulty_Classic, w50 x+175
+		GuiControl, Move, worldDifficulty_Expert, w50 x+235
+		GuiControl, Text, worldDifficulty_Classic, Normal
+		GuiControl, Text, worldDifficulty_Expert, Expert
+
+		OutputDebug, % "chard " charDifficulty
+
+		if (charDifficulty = "Journey") {
+			charDifficulty := "Classic"
+		}
+		if (charStyle = "Paste") {
+			charStyle := "Default"
+		}
+		if (worldDifficulty = "Journey" || worldDifficulty = "Master") {
+			worldDifficulty := "Classic"
+		}
+	} else if (version_array[2] >= 4 && version_array[2] != "") {
+		GuiControl, Show, charDifficulty_Journey
+		GuiControl, Show, worldDifficulty_Journey
+		GuiControl, Show, worldDifficulty_Master
+		GuiControl, Enable, charStylePaste
+
+		GuiControl, Move, charDifficulty_Classic, w20 x+55
+		GuiControl, Move, charDifficulty_Mediumcore, w20 x+85
+		GuiControl, Move, charDifficulty_Hardcore, w20 x+115
+
+		GuiControl, Text, worldDifficulty_Classic, C
+		GuiControl, Text, worldDifficulty_Expert, E
+		GuiControl, Move, worldDifficulty_Classic, w20 x+205
+		GuiControl, Move, worldDifficulty_Expert, w20 x+235
+	}
+	for key, varArray in (gui_Arrays) {
+		varSplit := StrSplit(varArray, "_")
+		varName := varSplit[1]
+		var := %varName%
+		for key, varSetting in (%varArray%) {
+			if (varSetting = var) {
+				GuiControl, Disable, %varName%_%varSetting%
+			} else {
+				GuiControl, Enable, %varName%_%varSetting%
+			}
+		}
+	}
 }
 
 Settings:
@@ -1115,6 +1175,30 @@ updateChecker() {
 		Reload
 }
 
+versionChecker(version) {
+	OutputDebug, % "versioncheck " version
+	global version_array := StrSplit(version, ".")
+
+	if (version_array[2] >= 4 && version_array[3] >= 4) {
+		OutputDebug, % "version to use: 1.4.4"
+		return "1.4.4"
+	}
+	if (version_array[2] >= 4 && version_array[3] >= 2) {
+		OutputDebug, % "version to use: 1.4.2"
+		return "1.4.2"
+	}
+	if (version_array[2] >= 4) {
+		OutputDebug, % "version to use: 1.4"
+		return "1.4"
+	}
+	if (version_array[2] <= 3) {
+		OutputDebug, % "version to use: 1.3"
+		Return "1.3"
+	}
+
+	
+}
+
 
 
 ;-----------------------------------------------------
@@ -1131,6 +1215,8 @@ OutputDebug, % "Ran Hotkey label"
 if (autoClose = 1) {
 	SetTimer, AutoClose, 10000
 }
+
+versionToUse := VersionChecker(version)
 
 if (!WinExist("ahk_exe terraria.exe")) {
 	if (runOnStart = 1 && disableSeasons = 1 && seasonalActive = 1) {
@@ -1168,13 +1254,12 @@ worldExist := FileExist(worldDir "\*.wld")
 if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
 	FileDelete, %terrariaDir%/servers.dat
 }
-global oldClipboard := ClipboardAll
 
-reset%resetMode%(charName, worldName, charExist, worldExist)
+reset%resetMode%(charName, worldName, charExist, worldExist, versionToUse)
 firstMacroLaunch := 0
 Return
 
-resetMouse(charName, worldName, charExist, worldExist) {
+resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 	global globalResets := resetCount("global")
 	global presetResets := resetCountPreset()
 	global currentResets := presetResets
@@ -1185,44 +1270,161 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "GLOBALRESETS", globalResets)
 	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
-	if (multiplayer = 1) {
-		sendMouse(2, 2.95)
-		if (multiplayerMethod = "Host") {
-			sendMouse(2, 2.05, 220)
+
+	if (versionToUse != "1.3") { ;if 1.4+ use different version of the macro
+
+		if (versionToUse = "1.4.4") {
+			singleplayerButtonY := 3.6
+			multiplayerButtonY := 2.95
+		}
+
+		if (versionToUse = "1.4.2") {
+			singleplayerButtonY := 3.6
+			multiplayerButtonY := 2.95
+		}
+
+		if (versionToUse = "1.4") {
+			singleplayerButtonY := 3.3
+			multiplayerButtonY := 2.66
+		}
+
+		if (multiplayer = 1) {
+			sendMouse(2, multiplayerButtonY)
+			if (multiplayerMethod = "Host") {
+				sendMouse(2, 2.05, 220)
+			} else {
+				sendMouse(2, 3.2, 220)
+			}
 		} else {
-			sendMouse(2, 3.2, 220)
+		sendMouse(2, singleplayerButtonY, 220) ;singleplayer
+		}
+
+		if (charExist != "") {
+		sendMouse(1.46, 2.88, 50) ;delete character
+		sendMouse(2, 2.5, 200) ;delete character
+		}
+		sendMouse(1.66, 1.08, 200) ;new character
+
+			if (charDifficulty != "Classic" && versionToUse = "1.4.4") { ;classic is pre selected on 1.4.4
+			if (charDifficulty = "Journey") {
+				sendMouse(2.44, 2.3) ;journey
+			} else if (charDifficulty = "Mediumcore") {
+				sendMouse(2.44, 2) ;mediumcore
+			} else if (charDifficulty = "Hardcore") {
+				sendMouse(2.44, 1.9) ;hardcore
+			}
+		} else if (versionToUse != "1.4.4") {
+			if (charDifficulty = "Classic") {
+				sendMouse(2.44, 2.16)
+			} else if (charDifficulty = "Mediumcore") {
+				sendMouse(2.44, 2) ;mediumcore
+			} else if (charDifficulty = "Hardcore") {
+				sendMouse(2.44, 1.9) ;hardcore
+			}
+		}
+
+		if (charStyle != "Default") {
+			sendMouse(2.56, 3, 75) ;character style
+			if (charStyle = "Random") {
+				sendMouse(1.88, 1.95) ;random style
+			} else {
+				clipboard := charStylePaste
+				sendMouse(2, 1.95) ;paste style
+			}
+		}
+		sendMouse(1.72, 1.7) ;create
+		paste(charName)
+		sendKey("enter", 1, 150)
+		sendMouse(3.15, 2.88, 200) ;select character
+		if (multiplayer = 1 && multiplayerMethod = "Join") {
+			sendKey("z", 1,, "^")
+			paste(IP)
+			sendKey("enter", 2)
+			sendMouse(2, 2)
+			return
+		}
+		if (worldExist != "") {
+		sendMouse(1.46, 2.9) ;delete world
+		sendMouse(2, 2.5, 200) ;delete world
+		}
+		sendMouse(1.66, 1.08, 200) ;new world
+		if (worldEvil != "Random") { ;random is pre selected
+			if (worldEvil = "Corruption") {
+				sendMouse(2, 2.15) ;corruption
+			} else {
+				sendMouse(1.65, 2.15) ;crimson
+				}
+		}
+		if (worldDifficulty != "Classic" && charDifficulty != "Journey" || (charDifficulty != "Journey" && worldDifficulty != "Journey")) { ;classic is preselected & journey is preselected for journey characters ;world difficulty / J = 2.5 / C = 2.15 / E = 1.85 / M = 1.65
+			if (worldDifficulty = "Expert") {
+				sendMouse(1.85, 2.45) ;expert
+			} 
+			if (worldDifficulty = "Master") {
+				sendMouse(1.65, 2.45) ;master
+			}
+			if (worldDifficulty = "Journey") {
+				sendMouse(2.55, 2.45)
+			}
+		} else if (charDifficulty = "Journey" && worldDifficulty = "Classic") {
+			sendMouse(2.15, 2.45)
+		}
+		if (worldSize = "Small" && versionToUse = "1.4.4") { ;small is preselected on <1.4.4
+			sendMouse(2.4, 2.8) ;small
+		} else if (worldSize = "Medium" && versionToUse != "1.4.4") { ;medium is preselected on 1.4.4+
+			sendMouse(2, 2.8) ;medium
+		} else if (worldSize = "Large") {
+			sendMouse(1.67, 2.8) ;large
+		}
+
+		if (worldSeed != "") {
+		sendMouse(2, 3.25) ;world seed
+		paste(worldSeed)
+		sendKey("enter", 1, 125)
+		}
+		if (worldName != "") {
+		sendMouse(2, 3.9) ;world name
+		paste(worldName)
+		sendKey("enter", 1, 150)
+		}
+		sendMouse(1.72, 1.7) ;create
+		sendMouse(2, 2)
+	} else if (versionToUse = "1.3") { ; if version is 1.3- different version of the macro
+		if (multiplayer = 1) {
+			sendMouse(2, 2.88)
+		if (multiplayerMethod = "Host") {
+			sendMouse(2, 2.2, 220)
+		} else {
+			sendMouse(2, 3.47, 220)
 		}
 	} else {
-	sendMouse(2, 3.6, 220) ;singleplayer
+		sendMouse(2, 3.46, 220) ;singleplayer
 	}
 	if (charExist != "") {
-	sendMouse(1.46, 2.88, 50) ;delete character
-	sendMouse(2, 2.5, 200) ;delete character
-	}
+		sendMouse(1.52, 3.1, 50) ;delete character
+		sendMouse(2, 2.69, 200) ;delete character
+		}
+
 	sendMouse(1.66, 1.08, 200) ;new character
 
-		if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is pre selected
-		if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
-			sendMouse(2.44, 2.3) ;journey
-		} else if (charDifficulty = "Mediumcore") {
-			sendMouse(2.44, 2) ;mediumcore
-		} else if (charDifficulty = "Hardcore") {
-			sendMouse(2.44, 1.9) ;hardcore
-		}
+	if (charDifficulty = "Mediumcore") {
+		sendMouse(2, 2.22)
+		sendMouse(2, 2.39)
 	}
-	if (charStyle != "Default") {
-		sendMouse(2.56, 3, 75) ;character style
-		if (charStyle = "Random") {
-			sendMouse(1.88, 1.95) ;random style
-		} else {
-			clipboard := charStylePaste
-			sendMouse(2, 1.95) ;paste style
-		}
+	if (charDifficulty = "Hardcore") {
+		sendMouse(2, 2.22)
+		sendMouse(2, 2.11)
 	}
-	sendMouse(1.72, 1.7) ;create
+
+	if (charStyle = "Random") {
+		sendMouse(2, 1.82)
+	}
+
+	sendMouse(2, 2) ;Create character
 	paste(charName)
 	sendKey("enter", 1, 150)
-	sendMouse(3.15, 2.88, 200) ;select character
+
+	sendMouse(3, 3, 200) ; Select character
+
 	if (multiplayer = 1 && multiplayerMethod = "Join") {
 		sendKey("z", 1,, "^")
 		paste(IP)
@@ -1230,52 +1432,49 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		sendMouse(2, 2)
 		return
 	}
+
 	if (worldExist != "") {
-	sendMouse(1.46, 2.9) ;delete world
-	sendMouse(2, 2.5, 200) ;delete world
-	}
+		sendMouse(1.52, 3.1) ;delete world
+		sendMouse(2, 2.69, 200) ;delete world
+		}
+	
 	sendMouse(1.66, 1.08, 200) ;new world
-	if (worldEvil != "Random") { ;random is pre selected
-		if (worldEvil = "Corruption") {
-			sendMouse(2, 2.15) ;corruption
-		} else {
-			sendMouse(1.65, 2.15) ;crimson
-			}
-	}
-	if (worldDifficulty != "Classic" && charDifficulty != "Journey") { ;classic is preselected & journey is preselected for journey characters ;world difficulty / J = 2.5 / C = 2.15 / E = 1.85 / M = 1.65
-		if (worldDifficulty = "Expert") {
-			sendMouse(1.85, 2.45) ;expert
-		} 
-		if (worldDifficulty = "Master") {
-			sendMouse(1.65, 2.45) ;master
-		}
-		if (worldDifficulty = "Journey") {
-			sendMouse(2.55, 2.45)
-		}
 
+	if (worldSize = "Small") {
+		sendMouse(2, 3, 100)
 	}
-	if (worldSize = "Small" && version >= "1.4.4") { ;small is preselected on <1.4.4
-		sendMouse(2.4, 2.8) ;small
-	} else if (worldSize = "Medium" && version < "1.4.4") { ;medium is preselected on 1.4.4+
-		sendMouse(2, 2.8) ;medium
-	} else if (worldSize = "Large") {
-		sendMouse(1.67, 2.8) ;large
+	if (worldSize = "Medium") {
+		sendMouse(2, 2.55, 100)
+	}
+	if (worldSize = "Large") {
+		sendMouse(2, 2.18, 100)
 	}
 
-	if (worldSeed != "") {
-	sendMouse(2, 3.25) ;world seed
-	paste(worldSeed)
-	sendKey("enter", 1, 125)
+	if (worldDifficulty = "Classic") {
+		sendMouse(2, 2.55, 100)
 	}
-	if (worldName != "") {
-	sendMouse(2, 3.9) ;world name
+	if (worldDifficulty = "Expert") {
+		sendMouse(2, 2.18, 100)
+	}
+
+	if (worldEvil = "Crimson") {
+		sendMouse(2, 2.55, 100)
+	}
+	if (worldEvil = "Corruption") {
+		sendMouse(2, 3, 100)
+	}
+	if (worldEvil = "Random") {
+		sendMouse(2, 2.18, 100)
+	}
+
 	paste(worldName)
 	sendKey("enter", 1, 150)
+
+	if (worldSeed) {
+		paste(worldSeed)
 	}
-	sendMouse(1.72, 1.7) ;create
-	sendMouse(2, 2)
-	clipboard := oldClipboard
-	oldClipboard := ""
+	sendKey("enter", 1, 150)
+	}
 }
 
 sendMouse(X, Y, wait:="") {
@@ -1307,7 +1506,7 @@ GetClientSize(hWnd, ByRef w := "", ByRef h := "")
 }
 
 
-ResetKeyboard(charName, worldName, charExist, worldExist) {
+ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
 	global globalResets := resetCount("global")
 	global presetResets := resetCountPreset()
 	global currentResets := presetResets
@@ -1320,82 +1519,109 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
 
 	if (charExist = "" && firstMacroLaunch != 0) { ;fix for first time launch with no chars // goes to achievements and back
-		sendKey("down", 2)
+		sendKey("s", 2)
 		sendKey("space", 1, 200)
-		sendKey("down")
+		sendKey("s")
 		sendKey("space", 1, 200)
 	}
 
 	if (multiplayer = 1) {
-		sendKey("down") ;move to multiplayer
+		sendKey("s") ;move to multiplayer
 		sendKey("space")
 		if (multiplayerMethod = "Host") {
-			sendKey("down",2)
+			sendKey("s",2)
 		}
 	} else {
-		sendKey("up") ;move to single player
+		sendKey("w") ;move to single player
 	}
 	sendKey("space", 1, 120) ;select
 	if (charExist != "") {
-		sendKey("right", 4) ;move to delete char
+		sendKey("d", 4) ;move to delete char
 		sendKey("space", 2, 100) ;delete char
 	}
-	sendKey("down") ;move to back
-	sendKey("right") ;move to new
+	sendKey("s") ;move to back
+	sendKey("d") ;move to new
 	sendKey("space", 1, 200) ;new
-	if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is preselected
-		if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
-			sendKey("up", 4)
-			sendKey("space")
-			if (charStyle = "Default") {
-			sendKey("down", 4)
-			} else {
-				sendKey("up", 2)
+	if (versionToUse != "1.3") {
+		if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is preselected
+			if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
+				sendKey("w", 4)
+				sendKey("space")
+				if (charStyle = "Default") {
+				sendKey("s", 4)
+				} else {
+					sendKey("w", 2)
+				}
+			} else if (charDifficulty = "Mediumcore") {
+				sendKey("w", 2)
+				sendKey("space")
+				if (charStyle = "Default") {
+				sendKey("s", 2)
+				} else {
+					sendKey("w", 4)
+				}
+			} else if (charDifficulty = "Hardcore") {
+				sendKey("w")
+				sendKey("space")
+				if (charStyle = "Default") {
+				sendKey("s", 1)
+				} else {
+					sendKey("w", 5)
+				}
 			}
-		} else if (charDifficulty = "Mediumcore") {
-			sendKey("up", 2)
-			sendKey("space")
-			if (charStyle = "Default") {
-			sendKey("down", 2)
-			} else {
-				sendKey("up", 4)
-			}
-		} else if (charDifficulty = "Hardcore") {
-			sendKey("up")
-			sendKey("space")
-			if (charStyle = "Default") {
-			sendKey("down", 1)
-			} else {
-				sendKey("up", 5)
-			}
+			sendKey("d")
 		}
-		sendKey("right")
-	}
 
-	if (charStyle != "Default") {
-
-		if (charDifficulty = "Classic") {
-			sendKey("up", 6)
-			sendKey("right")
-		} 
 		if (charStyle != "Default") {
+
+			if (charDifficulty = "Classic") {
+				sendKey("w", 6)
+				sendKey("d")
+			} 
+			if (charStyle != "Default") {
+				sendKey("space")
+				sendKey("s", 2)
+			}
+			if (charStyle = "Random") {
+				sendKey("d", 3)
+			} else {
+				sendKey("d", 2)
+				clipboard := charStylePaste
+			}
 			sendKey("space")
-			sendKey("down", 2)
+			sendKey("s")
+			sendKey("d")
 		}
+	} else if (versionToUse = "1.3") {
+		sendKey("s", 5) ;move to char difficulty
+		if (charDifficulty != "Classic") {
+			sendKey("space", 1, 100)
+			
+			if (charDifficulty = "Mediumcore") {
+				sendKey("s")
+				sendKey("space", 1, 100)
+				sendKey("s", 5)
+			}
+			if (charDifficulty = "Hardcore") {
+				sendKey("s", 2)
+				sendKey("space", 1, 100)
+				sendKey("s", 5)
+			}
+		}
+
+		sendKey("s")
+		
 		if (charStyle = "Random") {
-			sendKey("right", 3)
-		} else {
-			sendKey("right", 2)
-			clipboard := charStylePaste
+			sendKey("s")
+			sendKey("space")
+			sendKey("w")
 		}
-		sendKey("space")
-		sendKey("down")
-		sendKey("right")
 	}
+
 	sendKey("space", 1) ;name
 	paste(charName) ;input name
-	sendKey("enter") ;enter name
-	sendKey("up", 1, 100) ;select char
+	sendKey("enter", 1, 100) ;enter name
+	sendKey("w", 1, 100) ;select char
 	sendKey("space", 1, 100) ;select char
 	if (multiplayer = 1 && multiplayerMethod = "Join") {
 		sendKey("z", 1,, "^")
@@ -1404,71 +1630,102 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		return
 	}
 	if (worldExist != "") {
-	sendKey("right", 5) ;delete world
+	sendKey("d", 5) ;delete world
 	sendKey("space", 1, 65) ;delete world
 	sendKey("space", 1, 115) ;delete world
 	}
-	sendKey("down") ;move to back
-	sendKey("right") ;move to new
+	sendKey("s") ;move to back
+	sendKey("d") ;move to new
 	sendKey("space", 1, 160) ;open world
-	sendKey("up") ;move to crimson
-	if (worldEvil = "Corruption") {
-		sendKey("left")
-		sendKey("space") ;select corruption
-		sendKey("right")
-	} else if (worldEvil = "Crimson") {
-		sendKey("space", 1) ;select crimson
+
+	if (versionToUse != "1.3") {
+		sendKey("w") ;move to crimson
+		if (worldEvil = "Corruption") {
+			sendKey("a")
+			sendKey("space") ;select corruption
+			sendKey("d")
+		} else if (worldEvil = "Crimson") {
+			sendKey("space", 1) ;select crimson
+			}
+		sendKey("w")
+		if (worldDifficulty != "Classic" && charDifficulty != "Journey") {
+			if (worldDifficulty = "Expert") {
+				sendKey("a")
+				sendKey("space")
+				sendKey("d")
+			}
+			if (worldDifficulty = "Master") {
+				sendKey("space")
+			}
 		}
-	sendKey("up")
-	if (worldDifficulty != "Classic" && charDifficulty != "Journey") {
+		sendKey("w")
+		if (worldSize = "Large") {
+			sendKey("space")
+		}
+		if (worldSize = "Medium" && version < "1.4.4")
+		{
+			sendKey("a")
+			sendKey("space")
+		}
+		sendKey("w") ;move to seed
+		if (worldSeed != "") {
+			sendKey("space")
+			paste(worldSeed)
+			sendKey("enter", 1, 60)
+		}
+		if (worldName != "") {
+			sendKey("w")
+			sendKey("space")
+			paste(worldName)
+			sendKey("enter")
+			sendKey("s")
+		}
+		sendKey("s") ;move to small
+		if (worldSize = "Small" && version >= "1.4.4") {
+			sendKey("space") ;select small
+		}
+			if (worldDifficulty = "Journey" && charDifficulty = "Journey") {
+				sendKey("s")
+				sendKey("space")
+				sendKey("s", 2)
+			} else {
+			sendKey("s", 3) ;move to back
+			}
+		sendKey("d") ;move to create
+		sendKey("space") ;create world
+	} else if (versionToUse = "1.3") {
+		if (worldSize = "Medium") {
+			sendKey("s")
+		}
+		if (worldSize = "Large") {
+			sendKey("s", 2)
+		}
+		sendKey("space", 1, 100)
+
 		if (worldDifficulty = "Expert") {
-			sendKey("left")
-			sendKey("space")
-			sendKey("right")
+			sendKey("s")
 		}
-		if (worldDifficulty = "Master") {
-			sendKey("space")
+		sendKey("space")
+
+		if (worldEvil = "Crimson") {
+			sendKey("s")
 		}
-	}
-	sendKey("up")
-	if (worldSize = "Large") {
-		sendKey("space")
-	}
-	if (worldSize = "Medium" && version < "1.4.4")
-	{
-		sendKey("left")
-		sendKey("space")
-	}
-	sendKey("up") ;move to seed
-	if (worldSeed != "") {
-		sendKey("space")
-		paste(worldSeed)
-		sendKey("enter", 1, 60)
-	}
-	if (worldName != "") {
-		sendKey("up")
+		if (worldEvil = "Random") {
+			sendKey("s", 2)
+		}
 		sendKey("space")
 		paste(worldName)
-		sendKey("enter")
-		sendKey("down")
-	}
-	sendKey("down") ;move to small
-	if (worldSize = "Small" && version >= "1.4.4") {
-		sendKey("space") ;select small
-	}
-		if (worldDifficulty = "Journey" && charDifficulty = "Journey") {
-			sendKey("down")
-			sendKey("space")
-			sendKey("down", 2)
-		} else {
-		sendKey("down", 3) ;move to back
+		sendKey("enter", 1, 100)
+
+		if (worldSeed != "") {
+		paste(worldSeed)
 		}
-	sendKey("right") ;move to create
-	sendKey("space") ;create world
-	clipboard := oldClipboard
-	oldClipboard := ""
+
+		sendKey("enter", 1, 150)
+	}
 }
 paste(paste, times:=1, wait:="") {
+	oldClipboard := ClipboardAll
 	if (wait != "") {
 	keyWaitOld := keyWait
 	keyWait := wait * waitMultiplier
@@ -1483,6 +1740,8 @@ paste(paste, times:=1, wait:="") {
 	if (wait != "") {
 		keyWait := keyWaitOld
 	}
+	Clipboard := oldClipboard
+	oldClipboard := ""
 }
 sendKey(key, times:=1, wait:="", modifier:="") {
 	if (wait != "") {
