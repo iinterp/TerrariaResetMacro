@@ -258,7 +258,11 @@ Gui, Show, AutoSize Center, Terraria Reset Macro
 OnMessage(0x0200, "WM_MOUSEMOVE")
 
 if (checkedForUpdate != 1) {
-	updateChecker()
+Try {
+	updateChecker() 
+} Catch {
+	OutputDebug, % "Update could not be fetched."
+}
 }
 
 if !InStr(FileExist(terrariaDir), "D") {
@@ -1054,7 +1058,6 @@ Return
 
 updateChecker() {
 	global checkedForUpdate := 1
-	
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
 	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/develop/update/version.txt", true)
 	whr.Send()
@@ -1063,6 +1066,7 @@ updateChecker() {
 	newMacroVersion_array := StrSplit(newMacroVersion, ".")
 	macroVersion_array := StrSplit(macroVersion, ".")
 	if (newMacroVersion = ignoredMacroVersion) {
+		OutputDebug, % "Update " newMacroVersion " ignored."
 		Return
 	}
 	if (newMacroVersion_array[1] = macroVersion_array[1]) {
