@@ -1212,25 +1212,28 @@ updateChecker() {
 		OutputDebug, % "Update " newMacroVersion " ignored."
 		Return
 	}
-	if (newMacroVersion_array[1] = macroVersion_array[1]) {
-		if (newMacroVersion_array[2] = macroVersion_array[2]) {
-			if (newMacroVersion_array[3] = macroVersion_array[3]) {
-				OutputDebug, % "Macro up to date."
-				Return
-			}
+	for key, value in newMacroVersion_array
+		if (newMacroVersion_array[key] < macroVersion_array[key]) {
+			OutputDebug, % "New macro version older than current version."
+			Return
+		} else if (newMacroVersion_array[key] = macroVersion_array[key]) {
+			Continue
+		} else { ; new version
+			OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
+			Gui, Updater:New, +OwnerMain
+				Gui, Add, Text,, There is a new update available.
+				Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
+				updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
+				Gui, Add, Link, vchangelogLink, <a href="%updateChangelogLink%" >changelog</a>
+				Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
+				Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
+				Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
+				Gui, Updater:Show, Autosize Center, Update Checker
+				Gui, Main:+Disabled
+			Return
 		}
-	}
-	OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
-		Gui, Updater:New, +OwnerMain
-			Gui, Add, Text,, There is a new update available.
-			Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
-			updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
-			Gui, Add, Link, vchangelogLink, <a href="%updateChangelogLink%" >changelog</a>
-			Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
-			Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
-			Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
-			Gui, Updater:Show, Autosize Center, Update Checker
-			Gui, Main:+Disabled
+		; versions are the same
+		OutputDebug, % "Macro up to date."
 		Return
 	
 		IgnoreThisUpdate:
