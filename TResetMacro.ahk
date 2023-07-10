@@ -150,10 +150,10 @@ Gui, Main:New
 		resetMode_Keyboard_TT := "Uses the keyboard to reset."
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
-		Gui, Add, Text, xs+15 ys+18, Keybind:
+		Gui, Add, Text, xs+15 ys+18, Hotkey:
 		Gui, Add, Hotkey, w110 vresetKeybind gGUISaver, %resetKeybind%
-		resetKeybind_TT := "The keybind to press to activate the macro."
-		resetKeybind_SB := "Reset Keybind"
+		resetKeybind_TT := "The hotkey to press to activate the macro."
+		resetKeybind_SB := "Reset Hotkey"
 		Gui, Add, Text, xp yp+26, Key Duration:
 		Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
 		keyDuration_TT := "The time keys are held down for.`nIncrease if the macro is missing inputs."
@@ -745,8 +745,8 @@ Gui, Main:+Disabled
 Gui, -SysMenu
 
 Gui, Add, GroupBox, h250 w170 Center Section, Settings
-	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
-	passthrough_TT := "Whether your keybind will still be recognized by other programs.`nEspecially useful when binding your macro and timer reset keys to the same key."
+	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Hotkey passthrough
+	passthrough_TT := "Whether your hotkey will still be recognized by other programs.`nEspecially useful when binding your macro and timer reset keys to the same key."
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
 	showOnStart_TT := "Whether the macro GUI shows on start.`nThe GUI can be opened at any time from the tray menu."
 	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move player && world files
