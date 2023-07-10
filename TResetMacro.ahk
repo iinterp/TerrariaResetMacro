@@ -1,4 +1,4 @@
-global macroVersion := "1.1.0"
+global macroVersion := "1.2.0"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
@@ -93,6 +93,7 @@ if (moveFiles = 2) {
 }
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
+fieldsGreaterThanOne := "waitMultiplier,keyDuration,keyWait,version"
 
 If (WinExist(terraria.exe)) {
 terrariaHasExisted := 1
@@ -145,9 +146,9 @@ Gui, Main:New
 	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
 		resetMode_SB := "Reset Mode"
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
-		resetMode_Mouse_TT := "Uses the cursor to reset."
+		resetMode_Mouse_TT := "Uses the mouse to reset.`nCan be faster, but more inconsistent."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
-		resetMode_Keyboard_TT := "Uses the keyboard to reset."
+		resetMode_Keyboard_TT := "Uses the keyboard to reset.`nSometimes slower, but more consistent."
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
 		Gui, Add, Text, xs+15 ys+18, Hotkey:
@@ -156,15 +157,15 @@ Gui, Main:New
 		resetKeybind_SB := "Reset Hotkey"
 		Gui, Add, Text, xp yp+26, Key Duration:
 		Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
-		keyDuration_TT := "The time keys are held down for.`nIncrease if the macro is missing inputs."
+		keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
 		keyDuration_SB := "Key Duration"
 		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
 		Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
-		waitMultiplier_TT := "How long the macro should wait for loads.`nIncrease if the macro is continuing too fast."
+		waitMultiplier_TT := "Multiplies load wait time by this number.`nIncrease if the macro is continuing too fast."
 		waitMultiplier_SB := "Wait Multiplier"
 		Gui, Add, Text, xp yp+26, Key Buffer:
 		Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
-		keyWait_TT := "The time between key presses.`nIncrease if the macro is missing inputs."
+		keyWait_TT := "The time between key presses. (in ms)`nIncrease if the macro is missing inputs."
 		keyWait_SB := "Key Buffer"
 
 	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
@@ -316,13 +317,13 @@ Gui, IncorrectDirectory:New
 Gui, -SysMenu
 
 Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
-	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
+	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games\Terraria):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
 	Gui, Add, Button, w320 gTerrariaDirectoryExplore, Explore
-	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory:
+	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory (Terraria.exe):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaGameDir gGUISaver, %terrariaGameDir%
-	terrariaGameDir_TT := "Terraria game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
+	terrariaGameDir_TT := "Terraria.exe game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
 	Gui, Add, Button, w320 gTerrariaGameDirectoryExplore, Explore
 
 Gui, Add, Button, vsettingsSave gIncorrectDirectoryGuiClose xs yp+44 w350 h30, Save
@@ -873,10 +874,21 @@ SnQ:
 loop, parse, requiredFields, `,
 {
 	if (%A_LoopField% == "") {
-		MsgBox, %A_LoopField% cannot be empty.
+		variable_SB := A_LoopField . "_SB"
+		variable_SB := %variable_SB%
+		MsgBox, %variable_SB% cannot be empty.
 		Return
 	}
 }
+loop, parse, fieldsGreaterThanOne, `,
+	{
+		if (%A_LoopField% <= 0) {
+			variable_SB := A_LoopField . "_SB"
+			variable_SB := %variable_SB%
+			MsgBox, %variable_SB% cannot be 0.
+			Return
+		}
+	}
 for key, newSettingName in (categorySettings_Array) {
 	newSetting := %newSettingName%
 	IniRead, defaultSetting, settings.ini, defaults, %newSettingName%
@@ -971,6 +983,10 @@ OutputDebug, % "Terraria hasn't existed"
 Return
 
 IncorrectDirectoryGuiClose() {
+	if InStr(terrariaGameDir, "terraria.exe") {
+	SplitPath, terrariaGameDir,, terrariaGameDir
+	}
+
 	if !InStr(FileExist(terrariaDir), "D") {
 		MsgBox, % "Error with Save Directory:`n" terrariaDir "`nis not a valid folder! Make sure the folder is correct and exists."
 		Return
@@ -997,6 +1013,7 @@ IncorrectDirectoryGuiClose() {
 	worldDir := terrariaDir "\Worlds"
 	OutputDebug, % "playerDir = " playerDir
 	OutputDebug, % "worldDir = " worldDir
+	OutputDebug, % "gameDir = " terrariaGameDir
 	if (showOnStart) {
 		Gui, Main:-Disabled
 	}
