@@ -576,7 +576,9 @@ DeletePreset() {
 
 GUISaver() {
 	Gui, Submit, Nohide
-	GuiControl, Disable, %A_GuiControl%
+	if (A_GuiControl = "moveFiles") {
+		GuiControl, Disable, %A_GuiControl%
+	}
 	if (presetName = "") {
 		presetName := "Default"
 		OutputDebug, % "No preset found"
@@ -672,7 +674,9 @@ GUISaver() {
 	varNameLog := varName "_SB"
 	OutputDebug, % "Set " varName " to " var
 	SB_SetText("Set " %varNameLog% " to " var)
-	GuiControl, Enable, %A_GuiControl%
+	if (A_GuiControl = "moveFiles") {
+		GuiControl, Enable, %A_GuiControl%
+	}
 	Return
 }
 
