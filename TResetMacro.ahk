@@ -308,7 +308,7 @@ WM_MOUSEMOVE()
 
 IncorrectDirectory:
 if (showOnStart = 0) {
-	Gui, IncorrectDirectory:New
+Gui, IncorrectDirectory:New
 } else {
 	Gui, IncorrectDirectory:New, +OwnerMain
 }
@@ -576,6 +576,7 @@ DeletePreset() {
 
 GUISaver() {
 	Gui, Submit, Nohide
+	GuiControl, Disable, %A_GuiControl%
 	if (presetName = "") {
 		presetName := "Default"
 		OutputDebug, % "No preset found"
@@ -622,8 +623,10 @@ GUISaver() {
 				GuiControl, Disable, %varName%_%var%
 			}
 		}
-	} 
+	}
+
 	if (varName = "moveFiles") {
+		;Disable deleteFiles if moveFiles is not enabled
 		GuiControl, Enable%moveFiles%, deleteFiles
 		if (deleteFiles = 1 && moveFiles = 0) {
 			deleteFiles = 0
@@ -633,6 +636,15 @@ GUISaver() {
 			GuiControl, Enable%deleteFiles%, permanentlyDelete
 			OutputDebug, % "Set deleteFiles to 0"
 			OutputDebug, % "set permanentlyDelete to 0"
+		}
+
+		;Move files on settings switch
+		if (moveFiles = 0) {
+			moveFilesVar := 2
+			MoveFiles(settings)
+		} else {
+			moveFilesVar := 1
+			MoveFiles(settings)
 		}
 	}
 
@@ -660,6 +672,7 @@ GUISaver() {
 	varNameLog := varName "_SB"
 	OutputDebug, % "Set " varName " to " var
 	SB_SetText("Set " %varNameLog% " to " var)
+	GuiControl, Enable, %A_GuiControl%
 	Return
 }
 
@@ -976,10 +989,15 @@ IncorrectDirectoryGuiClose() {
 
 	IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 	IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
+	playerDir := terrariaDir "\Players"
+	worldDir := terrariaDir "\Worlds"
+	OutputDebug, % "playerDir = " playerDir
+	OutputDebug, % "worldDir = " worldDir
 	if (showOnStart) {
-	Gui, Main:-Disabled
+		Gui, Main:-Disabled
 	}
 	Gui, IncorrectDirectory:Submit
+	Return
 }
 
 SettingsGuiClose() {
@@ -1115,6 +1133,7 @@ MoveFiles(comingFrom) {
 	}
 		moveFilesVar := 1
 	}
+	sleep, 200
 	Return
 }
 
