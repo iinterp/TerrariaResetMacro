@@ -125,7 +125,7 @@ Menu, Tray, Add ;divider
 Menu, Tray, Add, Exit, Exit
 
 if (showOnStart = 0) {
-	Goto Hotkey
+	Goto skipMenuDirCheck
 }
 
 OpenConfig:
@@ -265,7 +265,12 @@ Try {
 }
 }
 
-if !InStr(FileExist(terrariaDir), "D") {
+skipMenuDirCheck:
+if (terrariaDir = "") {
+	Goto IncorrectDirectory
+} else if (terrariaGameDir = "") {
+	Goto IncorrectDirectory
+} else if !InStr(FileExist(terrariaDir), "D") {
 	Goto IncorrectDirectory
 } else if !InStr(terrariaDir, "Terraria") {
 	Goto IncorrectDirectory
@@ -274,7 +279,9 @@ if !InStr(FileExist(terrariaDir), "D") {
 } else if !FileExist(terrariaGameDir "/Terraria.exe") {
 	Goto IncorrectDirectory
 }
-
+if (showOnStart = 0) {
+	Goto Hotkey
+}
 Return
 
 WM_MOUSEMOVE()
@@ -296,7 +303,12 @@ WM_MOUSEMOVE()
 }
 
 IncorrectDirectory:
-Gui, IncorrectDirectory:New, +OwnerMain
+if (showOnStart = 0) {
+	Gui, IncorrectDirectory:New
+} else {
+	Gui, IncorrectDirectory:New, +OwnerMain
+}
+
 Gui, -SysMenu
 
 Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
@@ -311,7 +323,9 @@ Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
 
 Gui, Add, Button, vsettingsSave gIncorrectDirectoryGuiClose xs yp+44 w350 h30, Save
 Gui, Show, AutoSize Center
-Gui, Main:+Disabled
+if (showOnStart) {
+	Gui, Main:+Disabled
+}
 Return
 
 
@@ -920,8 +934,9 @@ IncorrectDirectoryGuiClose() {
 
 	IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 	IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
-
+	if (showOnStart) {
 	Gui, Main:-Disabled
+	}
 	Gui, IncorrectDirectory:Submit
 }
 
