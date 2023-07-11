@@ -1,4 +1,4 @@
-global macroVersion := "1.2.0"
+global macroVersion := "1.2.1"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
