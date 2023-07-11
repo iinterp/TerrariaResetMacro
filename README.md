@@ -6,6 +6,7 @@ A reset macro for Terraria speedruns
 - A GUI for changing all of your settings
 - Presets to easily switch run categories
 - Global, Preset and Session reset .txt files for easy OBS integration
+- Variables to name your character and world the current reset count
 - Automatically use RunAsDate to avoid the Halloween and Christmas events
 - Automatically move your regular Terraria saves during speedrun sessions
 - Faster resets by deleting your last player and world files before you see them
