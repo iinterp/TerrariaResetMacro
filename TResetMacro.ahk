@@ -1,4 +1,4 @@
-global macroVersion := "1.2.0"
+global macroVersion := "1.2.1"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
@@ -320,11 +320,13 @@ Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games\Terraria):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
-	Gui, Add, Button, w320 gTerrariaDirectoryExplore, Explore
+	Gui, Add, Button, w155 gTerrariaDirectoryScan, Scan
+	Gui, Add, Button, x+10 w155 gTerrariaDirectoryExplore, Explore
 	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory (Terraria.exe):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaGameDir gGUISaver, %terrariaGameDir%
 	terrariaGameDir_TT := "Terraria.exe game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
-	Gui, Add, Button, w320 gTerrariaGameDirectoryExplore, Explore
+	Gui, Add, Button, w155 gTerrariaGameDirectoryScan, Scan
+	Gui, Add, Button, x+10 w155 gTerrariaGameDirectoryExplore, Explore
 
 Gui, Add, Button, vsettingsSave gIncorrectDirectoryGuiClose xs yp+44 w350 h30, Save
 Gui, Show, AutoSize Center
@@ -334,14 +336,36 @@ if (showOnStart) {
 Return
 
 TerrariaDirectoryExplore:
-FileSelectFolder, terrariaDir,, Select Terrarias save folder
+FileSelectFolder, terrariaDir, *%A_MyDocuments%, Select Terrarias save folder
+GuiControl,, terrariaDir, %terrariaDir%
+Gui, Submit, Nohide
+IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
+Return
+
+TerrariaDirectoryScan:
+If (!InStr(FileExist(A_MyDocuments "\My Games\Terraria"), "D")) {
+	MsgBox %A_MyDocuments%\My Games\Terraria is not a valid directory!
+}
+terrariaDir := A_MyDocuments "\My Games\Terraria"
 GuiControl,, terrariaDir, %terrariaDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 Return
 
 TerrariaGameDirectoryExplore:
-FileSelectFolder, terrariaGameDir,, Select Terrarias Game folder
+FileSelectFolder, terrariaGameDir, *%A_ProgramFiles%, Select Terrarias Game folder
+GuiControl,, terrariaGameDir, %terrariaGameDir%
+Gui, Submit, Nohide
+IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
+Return
+
+TerrariaGameDirectoryScan:
+WinGet, TerrariaGameDirectoryTmp, ProcessPath, ahk_exe terraria.exe
+if (TerrariaGameDirectoryTmp = "") {
+	MsgBox, Game directory not found! Make sure Terraria is open and try again.
+}
+terrariaGameDir := TerrariaGameDirectoryTmp
+SplitPath, terrariaGameDir,, terrariaGameDir
 GuiControl,, terrariaGameDir, %terrariaGameDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
