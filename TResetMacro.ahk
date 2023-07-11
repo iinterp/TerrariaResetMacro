@@ -334,14 +334,14 @@ if (showOnStart) {
 Return
 
 TerrariaDirectoryExplore:
-FileSelectFolder, terrariaDir,, Select Terrarias save folder
+FileSelectFolder, terrariaDir, *%A_MyDocuments%, Select Terrarias save folder
 GuiControl,, terrariaDir, %terrariaDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 Return
 
 TerrariaGameDirectoryExplore:
-FileSelectFolder, terrariaGameDir,, Select Terrarias Game folder
+FileSelectFolder, terrariaGameDir, *%A_ProgramFiles%, Select Terrarias Game folder
 GuiControl,, terrariaGameDir, %terrariaGameDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
