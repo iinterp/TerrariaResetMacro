@@ -1,3 +1,4 @@
+SetWorkingDir %A_ScriptDir%
 global macroVersion := "1.2.1"
 author := "interp"
 
