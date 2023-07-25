@@ -1,4 +1,5 @@
-global macroVersion := "1.1.0"
+SetWorkingDir %A_ScriptDir%
+global macroVersion := "1.2.1"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
@@ -31,6 +32,8 @@ global multiplayer
 global multiplayerMethod
 global IP
 global moveFiles
+global deleteFiles
+global permanentlyDelete
 global ignoreThisUpdate
 global remindMeLater
 global downloadUpdate
@@ -38,6 +41,8 @@ global ignoredMacroVersion
 global changelogLink
 global terrariaDir
 global terrariaGameDir
+global playerDir
+global worldDir
 global showOnStart
 global version
 
@@ -53,9 +58,9 @@ global preset_Array := []
 global preset_ArrayString
 
 
-global macroSettings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
+global macroSettings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
 global categorySettings_Array := ["version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
-global settings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
+global settings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
 
 global resetMode_Array := ["Keyboard", "Mouse"]
 global charDifficulty_Array := ["Journey", "Classic", "Mediumcore", "Hardcore"]
@@ -89,6 +94,7 @@ if (moveFiles = 2) {
 }
 
 requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
+fieldsGreaterThanOne := "waitMultiplier,keyDuration,keyWait,version"
 
 If (WinExist(terraria.exe)) {
 terrariaHasExisted := 1
@@ -125,7 +131,7 @@ Menu, Tray, Add ;divider
 Menu, Tray, Add, Exit, Exit
 
 if (showOnStart = 0) {
-	Goto Hotkey
+	Goto skipMenuDirCheck
 }
 
 OpenConfig:
@@ -141,26 +147,26 @@ Gui, Main:New
 	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
 		resetMode_SB := "Reset Mode"
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
-		resetMode_Mouse_TT := "Uses the cursor to reset."
+		resetMode_Mouse_TT := "Uses the mouse to reset.`nCan be faster, but more inconsistent."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
-		resetMode_Keyboard_TT := "Uses the keyboard to reset."
+		resetMode_Keyboard_TT := "Uses the keyboard to reset.`nSometimes slower, but more consistent."
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
-		Gui, Add, Text, xs+15 ys+18, Keybind:
+		Gui, Add, Text, xs+15 ys+18, Hotkey:
 		Gui, Add, Hotkey, w110 vresetKeybind gGUISaver, %resetKeybind%
-		resetKeybind_TT := "The keybind to press to activate the macro."
-		resetKeybind_SB := "Reset Keybind"
+		resetKeybind_TT := "The hotkey to press to activate the macro."
+		resetKeybind_SB := "Reset Hotkey"
 		Gui, Add, Text, xp yp+26, Key Duration:
 		Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
-		keyDuration_TT := "The time keys are held down for.`nIncrease if the macro is missing inputs."
+		keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
 		keyDuration_SB := "Key Duration"
 		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
 		Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
-		waitMultiplier_TT := "How long the macro should wait for loads.`nIncrease if the macro is continuing too fast."
+		waitMultiplier_TT := "Multiplies load wait time by this number.`nIncrease if the macro is continuing too fast."
 		waitMultiplier_SB := "Wait Multiplier"
 		Gui, Add, Text, xp yp+26, Key Buffer:
 		Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
-		keyWait_TT := "The time between key presses.`nIncrease if the macro is missing inputs."
+		keyWait_TT := "The time between key presses. (in ms)`nIncrease if the macro is missing inputs."
 		keyWait_SB := "Key Buffer"
 
 	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
@@ -258,10 +264,19 @@ Gui, Show, AutoSize Center, Terraria Reset Macro
 OnMessage(0x0200, "WM_MOUSEMOVE")
 
 if (checkedForUpdate != 1) {
-	updateChecker()
+Try {
+	updateChecker() 
+} Catch {
+	OutputDebug, % "Update could not be fetched."
+}
 }
 
-if !InStr(FileExist(terrariaDir), "D") {
+skipMenuDirCheck:
+if (terrariaDir = "") {
+	Goto IncorrectDirectory
+} else if (terrariaGameDir = "") {
+	Goto IncorrectDirectory
+} else if !InStr(FileExist(terrariaDir), "D") {
 	Goto IncorrectDirectory
 } else if !InStr(terrariaDir, "Terraria") {
 	Goto IncorrectDirectory
@@ -270,7 +285,9 @@ if !InStr(FileExist(terrariaDir), "D") {
 } else if !FileExist(terrariaGameDir "/Terraria.exe") {
 	Goto IncorrectDirectory
 }
-
+if (showOnStart = 0) {
+	Goto Hotkey
+}
 Return
 
 WM_MOUSEMOVE()
@@ -292,34 +309,64 @@ WM_MOUSEMOVE()
 }
 
 IncorrectDirectory:
-Gui, IncorrectDirectory:New, +OwnerMain
+if (showOnStart = 0) {
+Gui, IncorrectDirectory:New
+} else {
+	Gui, IncorrectDirectory:New, +OwnerMain
+}
+
 Gui, -SysMenu
 
 Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
-	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
+	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games\Terraria):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
-	Gui, Add, Button, w320 gTerrariaDirectoryExplore, Explore
-	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory:
+	Gui, Add, Button, w155 gTerrariaDirectoryScan, Scan
+	Gui, Add, Button, x+10 w155 gTerrariaDirectoryExplore, Explore
+	Gui, Add, Text, xs+15 yp+30 vterrariaGameDirText, Game Directory (Terraria.exe):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaGameDir gGUISaver, %terrariaGameDir%
-	terrariaGameDir_TT := "Terraria game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
-	Gui, Add, Button, w320 gTerrariaGameDirectoryExplore, Explore
+	terrariaGameDir_TT := "Terraria.exe game directory.`nUsually a Steam directory.`nSelected folder should be 'Terraria'."
+	Gui, Add, Button, w155 gTerrariaGameDirectoryScan, Scan
+	Gui, Add, Button, x+10 w155 gTerrariaGameDirectoryExplore, Explore
 
 Gui, Add, Button, vsettingsSave gIncorrectDirectoryGuiClose xs yp+44 w350 h30, Save
 Gui, Show, AutoSize Center
-Gui, Main:+Disabled
+if (showOnStart) {
+	Gui, Main:+Disabled
+}
 Return
 
-
 TerrariaDirectoryExplore:
-FileSelectFolder, terrariaDir,, Select Terrarias save folder
+FileSelectFolder, terrariaDir, *%A_MyDocuments%, Select Terrarias save folder
+GuiControl,, terrariaDir, %terrariaDir%
+Gui, Submit, Nohide
+IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
+Return
+
+TerrariaDirectoryScan:
+If (!InStr(FileExist(A_MyDocuments "\My Games\Terraria"), "D")) {
+	MsgBox %A_MyDocuments%\My Games\Terraria is not a valid directory!
+}
+terrariaDir := A_MyDocuments "\My Games\Terraria"
 GuiControl,, terrariaDir, %terrariaDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 Return
 
 TerrariaGameDirectoryExplore:
-FileSelectFolder, terrariaGameDir,, Select Terrarias Game folder
+FileSelectFolder, terrariaGameDir, *%A_ProgramFiles%, Select Terrarias Game folder
+GuiControl,, terrariaGameDir, %terrariaGameDir%
+Gui, Submit, Nohide
+IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
+Return
+
+TerrariaGameDirectoryScan:
+WinGet, TerrariaGameDirectoryTmp, ProcessPath, ahk_exe terraria.exe
+if (TerrariaGameDirectoryTmp = "") {
+	MsgBox, Game directory not found! Make sure Terraria is open and try again.
+}
+terrariaGameDir := TerrariaGameDirectoryTmp
+SplitPath, terrariaGameDir,, terrariaGameDir
 GuiControl,, terrariaGameDir, %terrariaGameDir%
 Gui, Submit, Nohide
 IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
@@ -406,9 +453,17 @@ LoadSettings() {
 		}
 		%settingName% := setting
 	}
+	if (moveFiles = 0) {
+		deleteFiles = 0
+	}
+	if (deleteFiles = 0) {
+		permanentlyDelete = 0
+	}
 	terrariaDir := StrReplace(terrariaDir, "A_MyDocuments", A_MyDocuments)
-	global playerDir := terrariaDir "\Players"
-	global worldDir := terrariaDir "\Worlds"
+	playerDir := terrariaDir "\Players"
+	worldDir := terrariaDir "\Worlds"
+	OutputDebug, % "playerDir = " playerDir
+	OutputDebug, % "worldDir = " worldDir
 	SavePreset()
 }
 
@@ -545,6 +600,9 @@ DeletePreset() {
 
 GUISaver() {
 	Gui, Submit, Nohide
+	if (A_GuiControl = "moveFiles") {
+		GuiControl, Disable, %A_GuiControl%
+	}
 	if (presetName = "") {
 		presetName := "Default"
 		OutputDebug, % "No preset found"
@@ -595,9 +653,41 @@ GUISaver() {
 				GuiControl, Disable, %varName%_%var%
 			}
 		}
-	} 
+	}
+
+	if (varName = "moveFiles") {
+		;Disable deleteFiles if moveFiles is not enabled
+		GuiControl, Enable%moveFiles%, deleteFiles
+		if (deleteFiles = 1 && moveFiles = 0) {
+			deleteFiles = 0
+			permanentlyDelete = 0
+			GuiControl,, deleteFiles, 0
+			GuiControl,, permanentlyDelete, 0
+			GuiControl, Enable%deleteFiles%, permanentlyDelete
+			OutputDebug, % "Set deleteFiles to 0"
+			OutputDebug, % "set permanentlyDelete to 0"
+		}
+
+		;Move files on settings switch
+		if (moveFiles = 0) {
+			moveFilesVar := 2
+			MoveFiles(settings)
+		} else {
+			moveFilesVar := 1
+			MoveFiles(settings)
+		}
+	}
+
+	if (varName = "deleteFiles") {
+		GuiControl, Enable%deleteFiles%, permanentlyDelete
+		if (permanentlyDelete = 1 && deleteFiles = 0) {
+			permanentlyDelete = 0
+			GuiControl,, permanentlyDelete, 0
+			OutputDebug, % "set permanentlyDelete to 0"
+		}
+	}
+
 	if (varName = "showOnStart") {
-		OutputDebug, % "Reversing variable" " > " var
 		var := showOnStart
 		Menu, Tray, ToggleCheck, Show Menu On Start
 	}
@@ -612,6 +702,9 @@ GUISaver() {
 	varNameLog := varName "_SB"
 	OutputDebug, % "Set " varName " to " var
 	SB_SetText("Set " %varNameLog% " to " var)
+	if (A_GuiControl = "moveFiles") {
+		GuiControl, Enable, %A_GuiControl%
+	}
 	Return
 }
 
@@ -737,13 +830,17 @@ Gui, Settings:New, +OwnerMain
 Gui, Main:+Disabled
 Gui, -SysMenu
 
-Gui, Add, GroupBox, h206 w170 Center Section, Settings
-	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Keybind passthrough
-	passthrough_TT := "Whether your keybind will still be recognized by other programs.`nEspecially useful when binding your macro and timer reset keys to the same key."
+Gui, Add, GroupBox, h250 w170 Center Section, Settings
+	Gui, Add, Checkbox, vpassthrough gGUISaver xs+15 yp+22 checked%passthrough%, Hotkey passthrough
+	passthrough_TT := "Whether your hotkey will still be recognized by other programs.`nEspecially useful when binding your macro and timer reset keys to the same key."
 	Gui, Add, Checkbox, vshowOnStart gGUISaver xs+15 yp+22 checked%showOnStart%, Show menu on start
 	showOnStart_TT := "Whether the macro GUI shows on start.`nThe GUI can be opened at any time from the tray menu."
 	Gui, Add, Checkbox, vmoveFiles gGUISaver xs+15 yp+22 checked%moveFiles%, Move player && world files
 	moveFiles_TT := "Automatically moves your players and worlds to a new folder while the macro is running to avoid deleting them.`nYou can move them at any time from the tray menu."
+	Gui, Add, Checkbox, vdeleteFiles gGUISaver xs+15 yp+22 checked%deleteFiles%, Delete player && world files
+	deleteFiles_TT := "Automatically deletes your players and worlds when you reset.`nWill not delete moved files.`nRequires moving files to be enabled."
+	Gui, Add, Checkbox, vpermanentlyDelete gGUISaver xs+15 yp+22 checked%permanentlyDelete%, Don't recycle files
+	permanentDelete_TT := "Permanently delete player and world files on deletion.`n Slightly faster than recycling.`nRequires deleting files to be enabled."
 	Gui, Add, Checkbox, vclearServers gGUISaver xs+15 yp+22 checked%clearServers%, Clear server history
 	clearServers_TT := "Clear server history when running multiplayer.`n(only takes effect after game restart)"
 	Gui, Add, Checkbox, vautoClose gGUISaver xs+15 yp+22 checked%autoClose%, Close macro with Terraria
@@ -755,11 +852,17 @@ Gui, Add, GroupBox, h206 w170 Center Section, Settings
 	Gui, Add, Checkbox, vdisableSeasons gGUISaver xs+15 yp+22 checked%disableSeasons%, Disable seasonal events
 	disableSeasons_TT := "Run Terraria as a different date if a seasonal event would be active.`nDoes not effect other programs.`n(Requires game directory)"
 
+	if (moveFiles = 0) {
+		GuiControl, Disable, deleteFiles
+	}
+	if (deleteFiles = 0) {
+		GuiControl, Disable, permanentlyDelete
+	}
 	if (dontShowUnsavedPopup != 0) {
 		GuiControl,, dontShowUnsavedPopup, 1
 	}
 
-Gui, Add, GroupBox, h185 w170 Section Center xs ys+214, Terraria Directories:
+Gui, Add, GroupBox, h185 w170 Section Center xs ys+258, Terraria Directories:
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
@@ -856,10 +959,21 @@ SnQ:
 loop, parse, requiredFields, `,
 {
 	if (%A_LoopField% == "") {
-		MsgBox, %A_LoopField% cannot be empty.
+		variable_SB := A_LoopField . "_SB"
+		variable_SB := %variable_SB%
+		MsgBox, %variable_SB% cannot be empty.
 		Return
 	}
 }
+loop, parse, fieldsGreaterThanOne, `,
+	{
+		if (%A_LoopField% <= 0) {
+			variable_SB := A_LoopField . "_SB"
+			variable_SB := %variable_SB%
+			MsgBox, %variable_SB% cannot be 0.
+			Return
+		}
+	}
 for key, newSettingName in (categorySettings_Array) {
 	newSetting := %newSettingName%
 	IniRead, defaultSetting, settings.ini, defaults, %newSettingName%
@@ -954,6 +1068,10 @@ OutputDebug, % "Terraria hasn't existed"
 Return
 
 IncorrectDirectoryGuiClose() {
+	if InStr(terrariaGameDir, "terraria.exe") {
+	SplitPath, terrariaGameDir,, terrariaGameDir
+	}
+
 	if !InStr(FileExist(terrariaDir), "D") {
 		MsgBox, % "Error with Save Directory:`n" terrariaDir "`nis not a valid folder! Make sure the folder is correct and exists."
 		Return
@@ -976,9 +1094,16 @@ IncorrectDirectoryGuiClose() {
 
 	IniWrite, %terrariaDir%, settings.ini, settings, terrariaDir
 	IniWrite, %terrariaGameDir%, settings.ini, settings, terrariaGameDir
-
-	Gui, Main:-Disabled
+	playerDir := terrariaDir "\Players"
+	worldDir := terrariaDir "\Worlds"
+	OutputDebug, % "playerDir = " playerDir
+	OutputDebug, % "worldDir = " worldDir
+	OutputDebug, % "gameDir = " terrariaGameDir
+	if (showOnStart) {
+		Gui, Main:-Disabled
+	}
 	Gui, IncorrectDirectory:Submit
+	Return
 }
 
 SettingsGuiClose() {
@@ -1040,61 +1165,108 @@ MoveFiles(comingFrom) {
 	}
 	if (moveFilesVar = 1) {
 
+		OutputDebug, % "Moving playerDir -> _Temp"
 	Loop, Files, %playerDir%\*, D F
 	{
 		if (A_LoopFileAttrib = "D") {
-			if A_LoopFileName not in _Temp,_LastSession 
-				FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp\%A_LoopFileName%
+			if (InStr(A_LoopFileName, "_Temp") || InStr(A_LoopFileName, "_LastSession")) {
+				Continue
 			} else {
+				FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp\%A_LoopFileName%
+			}
+			} else if (RegExMatch(A_LoopFileName, .plr)) {
 			FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_Temp
 		}
 	}
+	OutputDebug, % "Moving _LastSession -> playerDir"
 	Loop, Files, %playerDir%\_LastSession\*, D F
 	{
 		if (A_LoopFileAttrib = "D") {
-			if A_LoopFileName not in _Temp,_LastSession
+			if (InStr(A_LoopFileName, "_Temp") || InStr(A_LoopFileName, "_LastSession")) {
+				Continue
+			} else {
 				FileMoveDir, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
-		} else {
+			}
+		} else if (RegExMatch(A_LoopFileName, .plr)) {
 		FileMove, %playerDir%\_LastSession\%A_LoopFileName%, %playerDir%\
 		}
 	}
-		Loop, Files, %worldDir%\*, F
+	Loop, Files, %worldDir%\*.wld*, F
 	{
 		FileMove, %worldDir%\%A_LoopFileName%, %worldDir%\_Temp\
 	}
-			Loop, Files, %worldDir%\_LastSession\*, F
+			Loop, Files, %worldDir%\_LastSession\*.wld*, F
 	{
 		FileMove, %worldDir%\_LastSession\%A_LoopFileName%, %worldDir%\
 	}
 	moveFilesVar := 2
 	} else if (moveFilesVar = 2) {
+		OutputDebug, % "Moving playerDir -> _LastSession"
 		Loop, Files, %playerDir%\*, D F
 	{
 		if (A_LoopFileAttrib = "D") {
-			if A_LoopFileName not in _Temp,_LastSession
+			if (InStr(A_LoopFileName, "_Temp") || InStr(A_LoopFileName, "_LastSession")) {
+				Continue
+			} else {
 				FileMoveDir, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession\%A_LoopFileName%
-		} else {
+			}
+	} else if (RegExMatch(A_LoopFileName, .plr)) {
 			FileMove, %playerDir%\%A_LoopFileName%, %playerDir%\_LastSession
 		}
 	}
-		Loop, Files, %playerDir%\_Temp\*, D F
+	OutputDebug, % "Moving _Temp -> playerDir"
+	Loop, Files, %playerDir%\_Temp\*, D F
 	{
 		if (A_LoopFileAttrib = "D") {
-			if A_LoopFileName not in _Temp,_LastSession
+			if (InStr(A_LoopFileName, "_Temp") || InStr(A_LoopFileName, "_LastSession")) {
+				Continue
+			} else {
 				FileMoveDir, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\%A_LoopFileName%
-		} else {
+			}
+		} else if (RegExMatch(A_LoopFileName, .plr)) {
 			FileMove, %playerDir%\_Temp\%A_LoopFileName%, %playerDir%\
 		}
 	}
-			Loop, Files, %worldDir%\*, F
+	OutputDebug, % "Moving worldDir -> _LastSession"
+	Loop, Files, %worldDir%\*.wld*, F
 	{
 		FileMove, %worldDir%\%A_LoopFileName%, %worldDir%\_LastSession\
 	}
-			Loop, Files, %worldDir%\_Temp\*, F
+	OutputDebug, % "Moving _Temp -> worldDir"
+	Loop, Files, %worldDir%\_Temp\*.wld*, F
 	{
 		FileMove, %worldDir%\_Temp\%A_LoopFileName%, %worldDir%\
 	}
 		moveFilesVar := 1
+	}
+	sleep, 200
+	Return
+}
+
+deleteFiles() {
+	OutputDebug, % "Running deleteFiles()"
+	OutputDebug, % "playerDir = " playerDir
+	OutputDebug, % "worldDir = " worldDir
+
+	Loop, Files, %playerDir%\*, D
+	{
+		if (InStr(A_LoopFileName, "_Temp") || InStr(A_LoopFileName, "_LastSession")) {
+			Continue
+		} else {
+			OutputDebug, % "Deleting Player Folder " A_LoopFileLongPath
+			if (permanentlyDelete) {
+				FileRemoveDir, %A_LoopFileLongPath%, 1
+				} else {
+					FileRecycle, %A_LoopFileLongPath%
+				}
+		}
+	}
+	if (permanentlyDelete) {
+	FileDelete, %playerDir%\*.plr*
+	FileDelete, %worldDir%\*.wld*
+	} else {
+		FileRecycle, %playerDir%\*.plr*
+		FileRecycle, %worldDir%\*.wld*
 	}
 	Return
 }
@@ -1114,36 +1286,39 @@ Return
 
 updateChecker() {
 	global checkedForUpdate := 1
-	
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/develop/update/version.txt", true)
+	whr.Open("GET", "https://raw.githubusercontent.com/iinterp/TerrariaResetMacro/main/update/version.txt", true)
 	whr.Send()
 	whr.WaitForResponse()
 	global newMacroVersion := whr.responseText
 	newMacroVersion_array := StrSplit(newMacroVersion, ".")
 	macroVersion_array := StrSplit(macroVersion, ".")
 	if (newMacroVersion = ignoredMacroVersion) {
+		OutputDebug, % "Update " newMacroVersion " ignored."
 		Return
 	}
-	if (newMacroVersion_array[1] = macroVersion_array[1]) {
-		if (newMacroVersion_array[2] = macroVersion_array[2]) {
-			if (newMacroVersion_array[3] = macroVersion_array[3]) {
-				OutputDebug, % "Macro up to date."
-				Return
-			}
+	for key, value in newMacroVersion_array
+		if (newMacroVersion_array[key] < macroVersion_array[key]) {
+			OutputDebug, % "New macro version older than current version."
+			Return
+		} else if (newMacroVersion_array[key] = macroVersion_array[key]) {
+			Continue
+		} else { ; new version
+			OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
+			Gui, Updater:New, +OwnerMain
+				Gui, Add, Text,, There is a new update available.
+				Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
+				updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
+				Gui, Add, Link, vchangelogLink, <a href="%updateChangelogLink%" >changelog</a>
+				Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
+				Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
+				Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
+				Gui, Updater:Show, Autosize Center, Update Checker
+				Gui, Main:+Disabled
+			Return
 		}
-	}
-	OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
-		Gui, Updater:New, +OwnerMain
-			Gui, Add, Text,, There is a new update available.
-			Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
-			updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
-			Gui, Add, Link, vchangelogLink, <a href="%updateChangelogLink%" >changelog</a>
-			Gui, Add, Button, h30 w100 vignoreThisUpdate gIgnoreThisUpdate, Ignore this update
-			Gui, Add, Button, h30 w100 x+m vremindMeLater gRemindMeLater, Remind me later
-			Gui, Add, Button, h30 w100 x+m +Default vdownloadUpdate gDownloadUpdate, Download update
-			Gui, Updater:Show, Autosize Center, Update Checker
-			Gui, Main:+Disabled
+		; versions are the same
+		OutputDebug, % "Macro up to date."
 		Return
 	
 		IgnoreThisUpdate:
@@ -1159,7 +1334,7 @@ updateChecker() {
 		Return
 	
 		DownloadUpdate:
-		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/develop/update/TerrariaResetMacro.exe?raw=true, new_TResetMacro.exe
+		UrlDownloadToFile, https://github.com/iinterp/TerrariaResetMacro/blob/main/update/TerrariaResetMacro.exe?raw=true, new_TResetMacro.exe
 		if (ErrorLevel != 0) {
 			msgbox Failed to download update.
 			Gui, Main:-Disabled
@@ -1249,6 +1424,10 @@ Hotkey, %resetKeybind%, Reset
 Return
 
 Reset:
+OutputDebug, % "Ran Reset Label"
+if (deleteFiles = 1 && moveFiles = 1) {
+	deleteFiles()
+}
 charExist := FileExist(playerDir "\*.plr")
 worldExist := FileExist(worldDir "\*.wld")
 if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
@@ -1260,6 +1439,7 @@ firstMacroLaunch := 0
 Return
 
 resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
+	OutputDebug, % "Resetting: Mouse"
 	global globalResets := resetCount("global")
 	global presetResets := resetCountPreset()
 	global currentResets := presetResets
@@ -1507,6 +1687,7 @@ GetClientSize(hWnd, ByRef w := "", ByRef h := "")
 
 
 ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
+	OutputDebug, % "Resetting: Keyboard"
 	global globalResets := resetCount("global")
 	global presetResets := resetCountPreset()
 	global currentResets := presetResets
@@ -1620,7 +1801,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
 
 	sendKey("space", 1) ;name
 	paste(charName) ;input name
-	sendKey("enter", 1, 100) ;enter name
+	sendKey("enter") ;enter name
 	sendKey("w", 1, 100) ;select char
 	sendKey("space", 1, 100) ;select char
 	if (multiplayer = 1 && multiplayerMethod = "Join") {
