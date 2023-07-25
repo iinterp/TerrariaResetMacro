@@ -74,6 +74,9 @@ global multiplayerVisible_Array := ["multiplayerSettings","multiplayerMethod_Hos
 
 global gui_Arrays := ["resetMode_Array","charDifficulty_Array","charStyle_Array","worldDifficulty_Array","worldSize_Array","worldEvil_Array","multiplayerMethod_Array"]
 
+global winWidth
+global winHeight
+
 OnExit("Exit")
 
 if (!FileExist(settings.ini)) {
@@ -1391,7 +1394,7 @@ if (autoClose = 1) {
 	SetTimer, AutoClose, 10000
 }
 
-versionToUse := VersionChecker(version)
+global versionToUse := VersionChecker(version)
 
 if (!WinExist("ahk_exe terraria.exe")) {
 	if (runOnStart = 1 && disableSeasons = 1 && seasonalActive = 1) {
@@ -1451,14 +1454,22 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
 
+	GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
+
+	if (winHeight = "1620") {
+		OutputDebug, % "1620"
+		1p3ClickArray := [6.35,4.9,7.78,1.75,6.95,6,1.83,1.03,4.98,5.4,4.76,4.15,4.5,2.36,6.75,5.68,6.48]
+	} else if (winHeight = "1440") {
+		OutputDebug, % "1440"
+		1p3ClickArray := [4.23,3.27,5.14,1.65,4.64,4,1.76,1.05,3.34,3.6,3.2,2.74,3,2.6,4.5,3.78,4.36]
+	} else {
+		OutputDebug, % "else"
+		1p3ClickArray := [3.17,2.45,3.85,1.56,3.48,3,1.7,1.06,2.5,2.7,2.37,2.05,2.25,2.87,3.37,2.84,3.27]
+	}
+
 	if (versionToUse != "1.3") { ;if 1.4+ use different version of the macro
 
-		if (versionToUse = "1.4.4") {
-			singleplayerButtonY := 3.6
-			multiplayerButtonY := 2.95
-		}
-
-		if (versionToUse = "1.4.2") {
+		if (versionToUse = "1.4.4" || "1.4.2") {
 			singleplayerButtonY := 3.6
 			multiplayerButtonY := 2.95
 		}
@@ -1570,40 +1581,40 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 		sendMouse(2, 2)
 	} else if (versionToUse = "1.3") { ; if version is 1.3- different version of the macro
 		if (multiplayer = 1) {
-			sendMouse(2, 2.88)
+			sendMouse(2, 1p3ClickArray[1])
 		if (multiplayerMethod = "Host") {
-			sendMouse(2, 2.2, 220)
+			sendMouse(2, 1p3ClickArray[2], 200)
 		} else {
-			sendMouse(2, 3.47, 220)
+			sendMouse(2, 1p3ClickArray[3], 200)
 		}
 	} else {
-		sendMouse(2, 3.46, 220) ;singleplayer
+		sendMouse(2, 1p3ClickArray[3], 200) ;singleplayer
 	}
 	if (charExist != "") {
-		sendMouse(1.52, 3.1, 50) ;delete character
-		sendMouse(2, 2.69, 200) ;delete character
+		sendMouse(1p3ClickArray[4], 1p3ClickArray[5]) ;delete character
+		sendMouse(2, 1p3ClickArray[6], 150) ;delete character
 		}
 
-	sendMouse(1.66, 1.08, 200) ;new character
+	sendMouse(1p3ClickArray[7], 1p3ClickArray[8]) ;new character
 
-	if (charDifficulty = "Mediumcore") {
-		sendMouse(2, 2.22)
-		sendMouse(2, 2.39)
-	}
-	if (charDifficulty = "Hardcore") {
-		sendMouse(2, 2.22)
-		sendMouse(2, 2.11)
+	if (charDifficulty != "Classic") {
+		sendMouse(2, 1p3ClickArray[9])
+		if (charDifficulty = "Mediumcore") {
+		sendMouse(2, 1p3ClickArray[10])
+		} else {
+		sendMouse(2, 1p3ClickArray[11])
+		}
 	}
 
 	if (charStyle = "Random") {
-		sendMouse(2, 1.82)
+		sendMouse(2, 1p3ClickArray[12], 50)
 	}
 
-	sendMouse(2, 2) ;Create character
+	sendMouse(2, 1p3ClickArray[13], 100) ;Create character
 	paste(charName)
 	sendKey("enter", 1, 150)
 
-	sendMouse(3, 3, 200) ; Select character
+	sendMouse(1p3ClickArray[14], 1p3ClickArray[5], 200) ; Select character
 
 	if (multiplayer = 1 && multiplayerMethod = "Join") {
 		sendKey("z", 1,, "^")
@@ -1614,37 +1625,37 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 	}
 
 	if (worldExist != "") {
-		sendMouse(1.52, 3.1) ;delete world
-		sendMouse(2, 2.69, 200) ;delete world
+		sendMouse(1p3ClickArray[4], 1p3ClickArray[5]) ;delete world
+		sendMouse(2, 1p3ClickArray[6], 150) ;delete world
 		}
 	
-	sendMouse(1.66, 1.08, 200) ;new world
+	sendMouse(1p3ClickArray[7], 1p3ClickArray[8]) ;new world
 
 	if (worldSize = "Small") {
-		sendMouse(2, 3, 100)
+		sendMouse(2, 1p3ClickArray[15])
 	}
 	if (worldSize = "Medium") {
-		sendMouse(2, 2.55, 100)
+		sendMouse(2, 1p3ClickArray[16])
 	}
 	if (worldSize = "Large") {
-		sendMouse(2, 2.18, 100)
+		sendMouse(2, 1p3ClickArray[2])
 	}
 
 	if (worldDifficulty = "Classic") {
-		sendMouse(2, 2.55, 100)
+		sendMouse(2, 1p3ClickArray[16])
 	}
 	if (worldDifficulty = "Expert") {
-		sendMouse(2, 2.18, 100)
+		sendMouse(2, 1p3ClickArray[2])
 	}
 
 	if (worldEvil = "Crimson") {
-		sendMouse(2, 2.55, 100)
+		sendMouse(2, 1p3ClickArray[16], 250)
 	}
 	if (worldEvil = "Corruption") {
-		sendMouse(2, 3, 100)
+		sendMouse(2, 1p3ClickArray[15], 250)
 	}
 	if (worldEvil = "Random") {
-		sendMouse(2, 2.18, 100)
+		sendMouse(2, 1p3ClickArray[2], 250)
 	}
 
 	paste(worldName)
@@ -1652,13 +1663,14 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 
 	if (worldSeed) {
 		paste(worldSeed)
+		sendKey("enter", 1)
+	} else {
+		sendMouse(2, 1p3ClickArray[17])
 	}
-	sendKey("enter", 1, 150)
 	}
 }
 
 sendMouse(X, Y, wait:="") {
-	GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
 	X := winWidth / X
 	Y := winHeight / Y
 
