@@ -120,7 +120,7 @@ Menu, Tray, Check, Show Menu On Start
 }
 
 for key, value in (preset_Array) {
-	Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+	Menu, PresetMenu, Add, %value%, LoadPreset, +Radio
 }
 
 for key, value in (preset_Array) {
@@ -391,32 +391,32 @@ GuiControl,, showOnStart, %showOnStart%
 Gui, Submit, Nohide
 Return
 
-TrayLoadPreset(presetToLoad) {
-	presetName := presetToLoad
-	Gui, Main:Submit, Nohide
-	for key, value in (preset_Array) {
-		if (presetName = value) {
-			for key, settingName in (categorySettings_Array) {
-				setting := %settingName%
-				IniRead, defaultSetting, settings.ini, defaults, %settingName%
-				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
-				if (setting = "ERROR") {
-					setting := ""
-				}
-				%settingName% := setting
-			}
-			IniWrite, %presetName%, settings.ini, settings, presetName
-		}
-	}
-	for key, value in (preset_Array) {
-		if (presetName = value) {
-			Menu, PresetMenu, Check, %value%
-		} else {
-			Menu, PresetMenu, Uncheck, %value%
-		}
-	}
-	LoadPreset("tray")
-}
+;TrayLoadPreset(presetToLoad) {
+;	presetName := presetToLoad
+;	Gui, Main:Submit, Nohide
+;	for key, value in (preset_Array) {
+;		if (presetName = value) {
+;			for key, settingName in (categorySettings_Array) {
+;				setting := %settingName%
+;				IniRead, defaultSetting, settings.ini, defaults, %settingName%
+;				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
+;				if (setting = "ERROR") {
+;					setting := ""
+;				}
+;				%settingName% := setting
+;			}
+;			IniWrite, %presetName%, settings.ini, settings, presetName
+;		}
+;	}
+;	for key, value in (preset_Array) {
+;		if (presetName = value) {
+;			Menu, PresetMenu, Check, %value%
+;		} else {
+;			Menu, PresetMenu, Uncheck, %value%
+;		}
+;	}
+;	LoadPreset("tray")
+;}
 
 LoadSettings() {
 	OutputDebug, % "Loading settings..."
@@ -528,7 +528,7 @@ SavePreset() {
 	preset_Array.Push(presetName)
 
 	for key, value in (preset_Array) {
-		Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+		Menu, PresetMenu, Add, %value%, LoadPreset, +Radio
 	}
 
 	OutputDebug, % "Saved " presetName
@@ -548,10 +548,16 @@ SavePreset() {
 	LoadPreset()
 }
 
-LoadPreset(fromTray:=0) {
+LoadPreset() {
 	Gui, Submit, Nohide
 	for key, value in (preset_Array) {
-		if (presetName = value) {
+		if (A_ThisMenuItem == value) {
+			global presetName := A_ThisMenuItem
+			fromTray := 1
+		}
+	}
+	for key, value in (preset_Array) {
+		if (presetName == value) {
 			OutputDebug, % "Setting preset to " presetName
 			Try Menu, PresetMenu, Check, %value%
 			for key, settingName in (categorySettings_Array) {
@@ -562,22 +568,22 @@ LoadPreset(fromTray:=0) {
 					setting := ""
 				}
 			}
-			IniWrite, %presetName%, settings.ini, settings, presetName
-			FileRead, presetResets, resets/%presetName%_resets.txt
-			FileDelete, resets/_currentresets.txt
-			FileAppend, %presetResets%, resets/_currentresets.txt
-			FileDelete, resets/_category.txt
-			FileAppend, %presetName%, resets/_category.txt
-			versionChecker()
-			VersionToggler()
-			if (fromTray != "tray" && guiCreated = 1) {
-			GUIInit()
-			}
-			SB_SetText("Set Preset to " presetName)
 		} else {
 			Try Menu, PresetMenu, Uncheck, %value%
 		}
 	}
+	IniWrite, %presetName%, settings.ini, settings, presetName
+	FileRead, presetResets, resets/%presetName%_resets.txt
+	FileDelete, resets/_currentresets.txt
+	FileAppend, %presetResets%, resets/_currentresets.txt
+	FileDelete, resets/_category.txt
+	FileAppend, %presetName%, resets/_category.txt
+	versionChecker()
+	VersionToggler()
+	if (fromTray != 1 && guiCreated = 1) {
+	GUIInit()
+	}
+	SB_SetText("Set Preset to " presetName)
 }
 
 versionChecker() {
@@ -782,7 +788,7 @@ GUIInit() {
 	OutputDebug, % "GUI Initialization..."
 	OutputDebug, % presetName "!"
 	for index, preset in (preset_Array) {
-		if (preset = presetName) {
+		if (preset == presetName) {
 			GuiControl, Choose, presetName, %index%
 		}
 	}
@@ -837,6 +843,7 @@ MultiplayerToggler() {
 		GuiControl, Move, tipText, y612
 	}
 	Gui, Main:Show, AutoSize, Terraria Reset Macro
+	Gui, Submit, Nohide
 }
 
 VersionToggler() {
