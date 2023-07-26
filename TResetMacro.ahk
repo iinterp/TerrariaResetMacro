@@ -805,7 +805,7 @@ MultiplayerToggler() {
 
 VersionToggler() {
 
-	if (version = 4) { ;if 1.3, hide journey/master keyboard, disable paste
+	if (version == 4) { ;if 1.3, hide journey/master, disable paste
 		GuiControl, Hide, charDifficulty_Journey
 		GuiControl, Hide, worldDifficulty_Journey
 		GuiControl, Hide, worldDifficulty_Master
@@ -1446,11 +1446,11 @@ if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
 	FileDelete, %terrariaDir%/servers.dat
 }
 
-reset%resetMode%(charName, worldName, charExist, worldExist, versionToUse)
+reset%resetMode%(charName, worldName, charExist, worldExist)
 firstMacroLaunch := 0
 Return
 
-resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
+resetMouse(charName, worldName, charExist, worldExist) {
 	OutputDebug, % "Resetting: Mouse"
 	global globalResets := resetCount("global")
 	global presetResets := resetCountPreset()
@@ -1476,14 +1476,14 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 		1p3ClickArray := [3.17,2.45,3.85,1.56,3.48,3,1.7,1.06,2.5,2.7,2.37,2.05,2.25,2.87,3.37,2.84,3.27]
 	}
 
-	if (versionToUse != "1.3") { ;if 1.4+ use different version of the macro
+	if (version != 4) { ;if 1.4+ use different version of the macro
 
-		if (versionToUse = "1.4.4" || "1.4.2") {
+		if (version == 1 || version == 2) {
 			singleplayerButtonY := 3.6
 			multiplayerButtonY := 2.95
 		}
 
-		if (versionToUse = "1.4") {
+		if (version == 3) {
 			singleplayerButtonY := 3.3
 			multiplayerButtonY := 2.66
 		}
@@ -1505,7 +1505,7 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 		}
 		sendMouse(1.66, 1.08, 200) ;new character
 
-			if (charDifficulty != "Classic" && versionToUse = "1.4.4") { ;classic is pre selected on 1.4.4
+			if (charDifficulty != "Classic" && version == 1) { ;classic is pre selected on 1.4.4
 			if (charDifficulty = "Journey") {
 				sendMouse(2.44, 2.3) ;journey
 			} else if (charDifficulty = "Mediumcore") {
@@ -1513,7 +1513,7 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 			} else if (charDifficulty = "Hardcore") {
 				sendMouse(2.44, 1.9) ;hardcore
 			}
-		} else if (versionToUse != "1.4.4") {
+		} else if (version != 1) {
 			if (charDifficulty = "Classic") {
 				sendMouse(2.44, 2.16)
 			} else if (charDifficulty = "Mediumcore") {
@@ -1568,9 +1568,9 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 		} else if (charDifficulty = "Journey" && worldDifficulty = "Classic") {
 			sendMouse(2.15, 2.45)
 		}
-		if (worldSize = "Small" && versionToUse = "1.4.4") { ;small is preselected on <1.4.4
+		if (worldSize = "Small" && version == 1) { ;small is preselected on <1.4.4
 			sendMouse(2.4, 2.8) ;small
-		} else if (worldSize = "Medium" && versionToUse != "1.4.4") { ;medium is preselected on 1.4.4+
+		} else if (worldSize = "Medium" && version != 1) { ;medium is preselected on 1.4.4+
 			sendMouse(2, 2.8) ;medium
 		} else if (worldSize = "Large") {
 			sendMouse(1.67, 2.8) ;large
@@ -1588,7 +1588,7 @@ resetMouse(charName, worldName, charExist, worldExist, versionToUse) {
 		}
 		sendMouse(1.72, 1.7) ;create
 		sendMouse(2, 2)
-	} else if (versionToUse = "1.3") { ; if version is 1.3- different version of the macro
+	} else if (version == 4) { ; if version is 1.3- different version of the macro
 		if (multiplayer = 1) {
 			sendMouse(2, 1p3ClickArray[1])
 		if (multiplayerMethod = "Host") {
@@ -1707,7 +1707,7 @@ GetClientSize(hWnd, ByRef w := "", ByRef h := "")
 }
 
 
-ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
+ResetKeyboard(charName, worldName, charExist, worldExist) {
 	OutputDebug, % "Resetting: Keyboard"
 	global globalResets := resetCount("global")
 	global presetResets := resetCountPreset()
@@ -1744,7 +1744,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
 	sendKey("s") ;move to back
 	sendKey("d") ;move to new
 	sendKey("space", 1, 200) ;new
-	if (versionToUse != "1.3") {
+	if (version != 4) {
 		if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is preselected
 			if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
 				sendKey("w", 4)
@@ -1794,7 +1794,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
 			sendKey("s")
 			sendKey("d")
 		}
-	} else if (versionToUse = "1.3") {
+	} else if (version == 4) {
 		sendKey("s", 5) ;move to char difficulty
 		if (charDifficulty != "Classic") {
 			sendKey("space", 1, 100)
@@ -1840,7 +1840,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
 	sendKey("d") ;move to new
 	sendKey("space", 1, 160) ;open world
 
-	if (versionToUse != "1.3") {
+	if (version != 4) {
 		sendKey("w") ;move to crimson
 		if (worldEvil = "Corruption") {
 			sendKey("a")
@@ -1895,7 +1895,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist, versionToUse) {
 			}
 		sendKey("d") ;move to create
 		sendKey("space") ;create world
-	} else if (versionToUse = "1.3") {
+	} else if (version == 4) {
 		if (worldSize = "Medium") {
 			sendKey("s")
 		}
