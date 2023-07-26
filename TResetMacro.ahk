@@ -1,5 +1,5 @@
 SetWorkingDir %A_ScriptDir%
-global macroVersion := "1.2.1"
+global macroVersion := "1.2.0"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
@@ -135,6 +135,15 @@ Menu, Tray, Add, Change Preset, :PresetMenu
 Menu, Tray, Add ;divider
 
 Menu, Tray, Add, Exit, Exit
+if (showOnStart != 1) {
+	if (checkedForUpdate != 1) {
+		Try {
+			updateChecker() 
+		} Catch {
+			OutputDebug, % "Update could not be fetched."
+		}
+	}
+}
 
 if (showOnStart = 0) {
 	Goto skipMenuDirCheck
@@ -275,11 +284,11 @@ GUIInit()
 global guiCreated := 1
 
 if (checkedForUpdate != 1) {
-Try {
-	updateChecker() 
-} Catch {
-	OutputDebug, % "Update could not be fetched."
-}
+	Try {
+		updateChecker() 
+	} Catch {
+		OutputDebug, % "Update could not be fetched."
+	}
 }
 
 skipMenuDirCheck:
@@ -1414,7 +1423,11 @@ updateChecker() {
 			Continue
 		} else { ; new version
 			OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
+			if (showOnStart != 0) {
 			Gui, Updater:New, +OwnerMain
+			} else {
+				Gui, Updater:New
+			}
 				Gui, Add, Text,, There is a new update available.
 				Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
 				updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
