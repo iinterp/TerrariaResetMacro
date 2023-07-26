@@ -1812,7 +1812,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		sendKey("d", 4) ;move to delete char
 		sendKey("space", 2, 100) ;delete char
 	}
-	sendKey("s") ;move to back
+	sendKey("s", 5) ;move to back
 	sendKey("d") ;move to new
 	sendKey("space", 1, 200) ;new
 	if (version != 4) {
