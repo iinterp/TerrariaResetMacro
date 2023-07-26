@@ -1,4 +1,5 @@
-global macroVersion := "1.2.1"
+SetWorkingDir %A_ScriptDir%
+global macroVersion := "1.3.0"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
@@ -12,6 +13,7 @@ FileDelete, old_TResetMacro.exe
 CoordMode, Mouse, Client
 SetWorkingDir %A_ScriptDir%
 
+global macroSpeed
 global resetKeybind
 global passthrough
 global keyDuration
@@ -46,6 +48,7 @@ global showOnStart
 global version
 
 global firstMacroLaunch
+global firstTimeOpening
 
 global resetSelection
 global presetResetsNum
@@ -57,9 +60,9 @@ global preset_Array := []
 global preset_ArrayString
 
 
-global macroSettings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
+global macroSettings_Array := ["macroSpeed","runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
 global categorySettings_Array := ["version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
-global settings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
+global settings_Array := ["firstTimeOpening","macroSpeed","runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
 
 global resetMode_Array := ["Keyboard", "Mouse"]
 global charDifficulty_Array := ["Journey", "Classic", "Mediumcore", "Hardcore"]
@@ -73,6 +76,9 @@ global multiplayerVisible_Array := ["multiplayerSettings","multiplayerMethod_Hos
 
 global gui_Arrays := ["resetMode_Array","charDifficulty_Array","charStyle_Array","worldDifficulty_Array","worldSize_Array","worldEvil_Array","multiplayerMethod_Array"]
 
+global winWidth
+global winHeight
+
 OnExit("Exit")
 
 if (!FileExist(settings.ini)) {
@@ -84,6 +90,7 @@ if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 
 }
 
 sessionResets := 0
+guiCreated := 0
 
 LoadSettings()
 
@@ -92,7 +99,7 @@ if (moveFiles = 2) {
 	IniWrite, %moveFiles%, settings.ini, settings, moveFiles
 }
 
-requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
+global requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
 fieldsGreaterThanOne := "waitMultiplier,keyDuration,keyWait,version"
 
 If (WinExist(terraria.exe)) {
@@ -113,7 +120,7 @@ Menu, Tray, Check, Show Menu On Start
 }
 
 for key, value in (preset_Array) {
-	Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+	Menu, PresetMenu, Add, %value%, LoadPreset, +Radio
 }
 
 for key, value in (preset_Array) {
@@ -128,61 +135,74 @@ Menu, Tray, Add, Change Preset, :PresetMenu
 Menu, Tray, Add ;divider
 
 Menu, Tray, Add, Exit, Exit
+if (showOnStart != 1) {
+	if (checkedForUpdate != 1) {
+		Try {
+			updateChecker() 
+		} Catch {
+			OutputDebug, % "Update could not be fetched."
+		}
+	}
+}
 
 if (showOnStart = 0) {
 	Goto skipMenuDirCheck
 }
 
 OpenConfig:
-if (firstLaunch = 0) {
+if (guiCreated = 1) {
 	LoadSettings()
+	Return
 }
 
 SetTimer, AutoClose, Off
 
+if (firstTimeOpening == 1) {
+	tipText := 	"Hover any control for a helpful tooltip!"
+	IniWrite, 0, settings.ini, settings, firstTimeOpening
+} else {
+	tipArray := ["Hover any control for a helpful tooltip!","Hover any control for a helpful tooltip!","Hover any control for a helpful tooltip!","You can use reset variables in your character/world names.`nGLOBALRESETS, PRESETRESETS && SESSIONRESETS", "You can enable file deletion in the settings to reset faster.","You can edit your reset count in the settings.","You can disable showing this menu on start in the settings."]
+	Random, randNum , 1, 7
+	tipText := tipArray[randNum]
+}
+
 Gui, Settings:Submit
 Gui, Main:New
 
-	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
+	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode
 		resetMode_SB := "Reset Mode"
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
-		resetMode_Mouse_TT := "Uses the mouse to reset.`nCan be faster, but more inconsistent."
+		resetMode_Mouse_TT := "Uses the mouse to reset.`nUsually faster, but may not work with all screen resolutions."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
-		resetMode_Keyboard_TT := "Uses the keyboard to reset.`nSometimes slower, but more consistent."
+		resetMode_Keyboard_TT := "Uses the keyboard to reset.`nUsually slower, but works with all screen resolutions."
 
-	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
-		Gui, Add, Text, xs+15 ys+18, Hotkey:
-		Gui, Add, Hotkey, w110 vresetKeybind gGUISaver, %resetKeybind%
+	Gui, Add, GroupBox, xs ys+70 Section Center w290 h90, Macro Settings
+		Gui, Add, Text, xs+15 ys+18 vhotkeyText, Hotkey:
+		Gui, Add, Hotkey, w212 x+m yp vresetKeybind gGUISaver, %resetKeybind%
 		resetKeybind_TT := "The hotkey to press to activate the macro."
 		resetKeybind_SB := "Reset Hotkey"
-		Gui, Add, Text, xp yp+26, Key Duration:
-		Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
-		keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
-		keyDuration_SB := "Key Duration"
-		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
-		Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
-		waitMultiplier_TT := "Multiplies load wait time by this number.`nIncrease if the macro is continuing too fast."
-		waitMultiplier_SB := "Wait Multiplier"
-		Gui, Add, Text, xp yp+26, Key Buffer:
-		Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
-		keyWait_TT := "The time between key presses. (in ms)`nIncrease if the macro is missing inputs."
-		keyWait_SB := "Key Buffer"
+		Gui, Add, Text, vfasterText yp, Faster
+		Gui, Add, Text, vslowerText yp, Slower
+		Gui, Add, Slider, Range10-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w190, %macroSpeed%
+		macroSpeed_TT := "The speed the macro resets at.`nSlow this down if you are having issues."
+		Gui, Add, Button, vadvancedButton gAdvancedSpeedSettings xp+225 yp+29 w15 h15, +
+		advancedButton_TT := "Advanced Speed Settings"
 
-	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
+	Gui, Add, GroupBox, Center Section xs ys+100 w290 h75, Preset
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
-		Gui, Add, Edit, x+m yp-2 w60 vversion gGUISaver, %version%
-		version_TT := "Terraria game version.`nVersions before 1.4.4 use a different version of the macro."
+		Gui, Add, DropDownList, x+m yp-2 w60 vversion gGUISaver choose%version% AltSubmit, 1.4.4|1.4.2|1.4|1.3
+		version_TT := "Terraria game version.`nIncludes in-between versions, e.g. 1.4.2 includes 1.4.3.`nThis must be set to your game version"
 		version_SB := "Version"
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
 		
-	Gui, Add, GroupBox, Center Section xs ym+285 h50, Character Name:
+	Gui, Add, GroupBox, Center Section xs ym+255 h50, Character Name
 		Gui, Add, Edit, xp+15 yp+18 r1 w110 vcharName gGUISaver, %charName%
 		charName_TT := "Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 		charName_SB := "Character Name"
 
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, Character Difficulty:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, Character Difficulty
 		charDifficulty_SB := "Character Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vcharDifficulty_Journey gGUISaver, J
 		charDifficulty_Journey_TT := "Journey"
@@ -193,7 +213,7 @@ Gui, Main:New
 		Gui, Add, Button, x+m w20 vcharDifficulty_Hardcore gGUISaver, H
 		charDifficulty_Hardcore_TT := "Hardcore"
 
-	Gui, Add, GroupBox, Center Section xs ys+60 h110, Character Style:
+	Gui, Add, GroupBox, Center Section xs ys+60 h110, Character Style
 		charStyle_SB := "Character Style"
 		Gui, Add, Button, xp+15 yp+18 w50 vcharStyle_Default gGUISaver, Default
 		Gui, Add, Button, x+m w50 vcharStyle_Random gGUISaver, Random
@@ -202,12 +222,13 @@ Gui, Main:New
 		charStylePaste_TT := "Paste character template to use as style."
 		charStylePaste_SB := "Character Template"
 
-		Gui, Add, GroupBox, Center Section xs ys+120 h50, Multiplayer:
+		Gui, Add, GroupBox, Center Section xs ys+120 h50, Multiplayer
 			multiplayer_SB := "Multiplayer"
 			multiplayerMethod_SB := "Multiplayer method"
 			Gui, Add, Checkbox, vmultiplayer gGUISaver xs+15 yp+22 checked%multiplayer%, Multiplayer
 		Gui, Add, Button, xs ys+66 w140 h40 vsettings gSettings, Settings
-		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings:
+		Gui, Add, Text, vtipText xs yp+46 w290 Center, %tipText%
+		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings
 			Gui, Add, Button, xs+15 yp+22 w50 vmultiplayerMethod_Host gGUISaver, Host
 			multiplayerMethod_Host_TT := "Makes you the host."
 			Gui, Add, Button, x+m yp w50 vmultiplayerMethod_Join gGUISaver, Join
@@ -218,11 +239,11 @@ Gui, Main:New
 
 ;----
 
-	Gui, Add, GroupBox, Center xs+150 ym+285 Section h50, World Name:
+	Gui, Add, GroupBox, Center xs+150 ym+255 Section h50, World Name
 		worldName_SB := "World Name"
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
-		worldName_TT := "Leave blank for random.`nCan use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
+		worldName_TT := "Leave blank for random. [Except in 1.3]`nCan use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty
 		worldDifficulty_SB := "World Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vworldDifficulty_Journey gGUISaver, J
 		worldDifficulty_Journey_TT := "Journey"
@@ -232,7 +253,7 @@ Gui, Main:New
 		worldDifficulty_Expert_TT := "Expert"
 		Gui, Add, Button, x+m w20 vworldDifficulty_Master gGUISaver, M
 		worldDifficulty_Master_TT := "Master"
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Size:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Size
 		worldSize_SB := "World Size"
 		Gui, Add, Button, xp+15 yp+18 w30 vworldSize_Small gGUISaver, S
 		worldSize_Small_TT := "Small"
@@ -240,7 +261,7 @@ Gui, Main:New
 		worldSize_Medium_TT := "Medium"
 		Gui, Add, Button, x+m w30 vworldSize_Large gGUISaver, L
 		worldSize_Large_TT := "Large"
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Evil:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Evil
 		worldEvil_SB := "World Evil"
 		Gui, Add, Button, xp+15 yp+18 w30 vworldEvil_Random gGUISaver, Ran
 		worldEvil_Random_TT := "Random"
@@ -248,26 +269,28 @@ Gui, Main:New
 		worldEvil_Crimson_TT := "Crimson"
 		Gui, Add, Button, x+m w30 vworldEvil_Corruption gGUISaver, Corr
 		worldEvil_Corruption_TT := "Corruption"
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Seed:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Seed
 		worldSeed_SB := "World Seed"
 		Gui, Add, Edit,r1 vworldSeed gGUISaver w110 xp+15 yp+18, %worldSeed%
 		worldSeed_TT := "Leave blank for random."
-	Gui, Add, Button, xs ys+66 w140 h40 vSnQ gSnQ, Save
-	Gui, Add, Button, xs ys+66 w140 h40 vsettings2 gSettings, Settings
+	Gui, Add, Button, xs ys+66 w140 h40 vSnQ gSnQ Section, Save
+	Gui, Add, Button, xs ys w140 h40 vsettings2 gSettings, Settings
 	Gui, Add, Button, xs yp+54 w140 h40 vSnQ2 gSnQ, Save
+	
+	Gui, Add, StatusBar,vstatusBar
+	OnMessage(0x0200, "WM_MOUSEMOVE")
 
 GUIInit()
+global guiCreated := 1
 
-Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%macroVersion%
-Gui, Show, AutoSize Center, Terraria Reset Macro
-OnMessage(0x0200, "WM_MOUSEMOVE")
+Guicontrol,, statusBar, Terraria Reset Macro v%macroVersion%
 
 if (checkedForUpdate != 1) {
-Try {
-	updateChecker() 
-} Catch {
-	OutputDebug, % "Update could not be fetched."
-}
+	Try {
+		updateChecker() 
+	} Catch {
+		OutputDebug, % "Update could not be fetched."
+	}
 }
 
 skipMenuDirCheck:
@@ -316,7 +339,7 @@ Gui, IncorrectDirectory:New
 
 Gui, -SysMenu
 
-Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
+Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games\Terraria):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
@@ -379,32 +402,32 @@ GuiControl,, showOnStart, %showOnStart%
 Gui, Submit, Nohide
 Return
 
-TrayLoadPreset(presetToLoad) {
-	presetName := presetToLoad
-	Gui, Main:Submit, Nohide
-	for key, value in (preset_Array) {
-		if (presetName = value) {
-			for key, settingName in (categorySettings_Array) {
-				setting := %settingName%
-				IniRead, defaultSetting, settings.ini, defaults, %settingName%
-				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
-				if (setting = "ERROR") {
-					setting := ""
-				}
-				%settingName% := setting
-			}
-			IniWrite, %presetName%, settings.ini, settings, presetName
-		}
-	}
-	for key, value in (preset_Array) {
-		if (presetName = value) {
-			Menu, PresetMenu, Check, %value%
-		} else {
-			Menu, PresetMenu, Uncheck, %value%
-		}
-	}
-	LoadPreset("tray")
-}
+;TrayLoadPreset(presetToLoad) {
+;	presetName := presetToLoad
+;	Gui, Main:Submit, Nohide
+;	for key, value in (preset_Array) {
+;		if (presetName = value) {
+;			for key, settingName in (categorySettings_Array) {
+;				setting := %settingName%
+;				IniRead, defaultSetting, settings.ini, defaults, %settingName%
+;				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
+;				if (setting = "ERROR") {
+;					setting := ""
+;				}
+;				%settingName% := setting
+;			}
+;			IniWrite, %presetName%, settings.ini, settings, presetName
+;		}
+;	}
+;	for key, value in (preset_Array) {
+;		if (presetName = value) {
+;			Menu, PresetMenu, Check, %value%
+;		} else {
+;			Menu, PresetMenu, Uncheck, %value%
+;		}
+;	}
+;	LoadPreset("tray")
+;}
 
 LoadSettings() {
 	OutputDebug, % "Loading settings..."
@@ -430,7 +453,7 @@ LoadSettings() {
 	FileAppend, %presetResets%, resets/_currentresets.txt
 	FileDelete, resets/_category.txt
 	FileAppend, %presetName%, resets/_category.txt
-	
+
 	preset_ArrayString := preset_Array
 	preset_Array := StrSplit(preset_Array, "|")
 	OutputDebug, % "Preset: " presetName
@@ -452,6 +475,9 @@ LoadSettings() {
 		}
 		%settingName% := setting
 	}
+
+	IniRead, firstTimeOpening, settings.ini, Settings, firstTimeOpening, 1
+
 	if (moveFiles = 0) {
 		deleteFiles = 0
 	}
@@ -479,9 +505,7 @@ SavePreset() {
 		OutputDebug, % "No preset found"
 	}
 
-	if (charStyle = "Default" || charStyle = "Random") {
-		charStylePaste := ""
-	} else {
+	if (charStyle != "Default" && charStyle != "Random") {
 		charStylePaste := StrReplace(charStylePaste, "`n")
 		charStyle := "Paste"
 	}
@@ -506,6 +530,7 @@ SavePreset() {
 		if (preset_Array[index] = presetName) {
 			OutputDebug, % "Already saved " presetName
 			SB_SetText("Saved Preset " presetName)
+			LoadPreset()
 			Return
 		}
 	}
@@ -514,7 +539,7 @@ SavePreset() {
 	preset_Array.Push(presetName)
 
 	for key, value in (preset_Array) {
-		Menu, PresetMenu, Add, %value%, TrayLoadPreset, +Radio
+		Menu, PresetMenu, Add, %value%, LoadPreset, +Radio
 	}
 
 	OutputDebug, % "Saved " presetName
@@ -534,12 +559,18 @@ SavePreset() {
 	LoadPreset()
 }
 
-LoadPreset(fromTray:=0) {
+LoadPreset() {
 	Gui, Submit, Nohide
 	for key, value in (preset_Array) {
-		if (presetName = value) {
+		if (A_ThisMenuItem == value) {
+			global presetName := A_ThisMenuItem
+			fromTray := 1
+		}
+	}
+	for key, value in (preset_Array) {
+		if (presetName == value) {
 			OutputDebug, % "Setting preset to " presetName
-			Menu, PresetMenu, Check, %value%
+			Try Menu, PresetMenu, Check, %value%
 			for key, settingName in (categorySettings_Array) {
 				setting := %settingName%
 				IniRead, defaultSetting, settings.ini, defaults, %settingName%
@@ -548,20 +579,50 @@ LoadPreset(fromTray:=0) {
 					setting := ""
 				}
 			}
-			IniWrite, %presetName%, settings.ini, settings, presetName
-			FileRead, presetResets, resets/%presetName%_resets.txt
-			FileDelete, resets/_currentresets.txt
-			FileAppend, %presetResets%, resets/_currentresets.txt
-			FileDelete, resets/_category.txt
-			FileAppend, %presetName%, resets/_category.txt
-			if (fromTray != "tray") {
-			GUIInit()
-			}
-			SB_SetText("Set Preset to " presetName)
 		} else {
-			Menu, PresetMenu, Uncheck, %value%
+			Try Menu, PresetMenu, Uncheck, %value%
 		}
 	}
+	IniWrite, %presetName%, settings.ini, settings, presetName
+	FileRead, presetResets, resets/%presetName%_resets.txt
+	FileDelete, resets/_currentresets.txt
+	FileAppend, %presetResets%, resets/_currentresets.txt
+	FileDelete, resets/_category.txt
+	FileAppend, %presetName%, resets/_category.txt
+	versionChecker()
+	VersionToggler()
+	if (fromTray != 1 && guiCreated = 1) {
+	GUIInit()
+	}
+	SB_SetText("Set Preset to " presetName)
+}
+
+versionChecker() {
+	OutputDebug, % "versioncheck " version
+	if (version == 1 || version == 2 || version == 3 || version == 4) {
+		OutputDebug, % "version already: " %version%
+		IniWrite, %version%, settings.ini, %presetName%_Settings, version
+		return version
+	}
+	global version_array := StrSplit(version, ".")
+
+	if (version_array[2] >= 4 && version_array[3] >= 4) {
+		OutputDebug, % "version to use: 1.4.4"
+		version := 1
+	} else if (version_array[2] >= 4 && version_array[3] >= 2) {
+		OutputDebug, % "version to use: 1.4.2"
+		version := 2
+	} else if (version_array[2] >= 4) {
+		OutputDebug, % "version to use: 1.4"
+		version := 3
+	} else if (version_array[2] <= 3) {
+		OutputDebug, % "version to use: 1.3"
+		version := 4
+	} else {
+		version := 1
+	}
+	IniWrite, %version%, settings.ini, %presetName%_Settings, version
+	Return version
 }
 
 DeletePreset() {
@@ -599,6 +660,32 @@ DeletePreset() {
 	}
 }
 
+SpeedCalc() {
+	global waitMultiplier := macroSpeed / 10
+	if (macroSpeed == 10) {
+		global keyDuration := 10
+		global keyWait := 25
+	} else if (macroSpeed < 20) {
+		global keyDuration := 10
+		global keyWait := 30
+	} else if (macroSpeed >= 20 && macroSpeed < 30) {
+		global keyDuration := 30
+		global keyWait := 40
+	} else if (macroSpeed >= 30 && macroSpeed < 40) {
+		global keyDuration := 50
+		global keyWait := 50
+	} else {
+		global keyDuration := 75
+		global keyWait := 75
+	}
+	IniWrite, %macroSpeed%, settings.ini, settings, macroSpeed
+	IniWrite, %waitMultiplier%, settings.ini, settings, waitMultiplier
+	IniWrite, %keyDuration%, settings.ini, settings, keyDuration
+	IniWrite, %keyWait%, settings.ini, settings, keyWait
+	SB_SetText("Set Macro Speed to " macroSpeed)
+	OutputDebug, % "Speed Calc: Multiplier " waitMultiplier ", Duration " keyDuration ", Buffer " keyWait
+}
+
 GUISaver() {
 	Gui, Submit, Nohide
 	if (A_GuiControl = "moveFiles") {
@@ -614,6 +701,10 @@ GUISaver() {
 
 	if (varName = "multiplayer") {
 		MultiplayerToggler()
+	}
+
+	if (varName = "version") {
+		VersionToggler()
 	}
 
 	if (varName = "charStylePaste") {
@@ -709,7 +800,7 @@ GUIInit() {
 	OutputDebug, % "GUI Initialization..."
 	OutputDebug, % presetName "!"
 	for index, preset in (preset_Array) {
-		if (preset = presetName) {
+		if (preset == presetName) {
 			GuiControl, Choose, presetName, %index%
 		}
 	}
@@ -725,9 +816,9 @@ GUIInit() {
 			}
 		}
 	}
+	GuiControl, Choose, version, %version%
 	GuiControl,, multiplayer, %multiplayer%
 	GuiControl,, IP, %IP%
-	GuiControl,, version, %version%
 	GuiControl,, charName, %charName%
 	GuiControl,, worldName, %worldName%
 	GuiControl,, worldSeed, %worldSeed%
@@ -749,6 +840,7 @@ MultiplayerToggler() {
 		Guicontrol, Hide, SnQ
 		GuiControl, Show, settings2
 		GuiControl, Show, SnQ2
+		GuiControl, Move, tipText, y666
 		for key, value in (multiplayerVisible_Array) {
 			GuiControl, Show, %value%
 		}
@@ -760,9 +852,101 @@ MultiplayerToggler() {
 		Guicontrol, Hide, SnQ2
 		GuiControl, Show, settings
 		GuiControl, Show, SnQ
+		GuiControl, Move, tipText, y612
 	}
 	Gui, Main:Show, AutoSize, Terraria Reset Macro
+	Gui, Submit, Nohide
 }
+
+VersionToggler() {
+
+	if (version == 4) { ;if 1.3, hide journey/master, disable paste
+		GuiControl, Hide, charDifficulty_Journey
+		GuiControl, Hide, worldDifficulty_Journey
+		GuiControl, Hide, worldDifficulty_Master
+		GuiControl, Disable, charStylePaste
+		
+		GuiControl, Move, charDifficulty_Classic, w30 x+25
+		GuiControl, Move, charDifficulty_Mediumcore, w30 x+65
+		GuiControl, Move, charDifficulty_Hardcore, w30 x+105
+
+		GuiControl, Move, worldDifficulty_Classic, w50 x+175
+		GuiControl, Move, worldDifficulty_Expert, w50 x+235
+		GuiControl, Text, worldDifficulty_Classic, Normal
+		GuiControl, Text, worldDifficulty_Expert, Expert
+
+		global requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName,worldName"
+
+		if (charDifficulty = "Journey") {
+			charDifficulty := "Classic"
+		}
+		if (charStyle = "Paste") {
+			charStyle := "Default"
+		}
+		if (worldDifficulty = "Journey" || worldDifficulty = "Master") {
+			worldDifficulty := "Classic"
+		}
+	} else if (version != 4) { ;not 1.3, show journey/master, enable paste
+		GuiControl, Show, charDifficulty_Journey
+		GuiControl, Show, worldDifficulty_Journey
+		GuiControl, Show, worldDifficulty_Master
+		GuiControl, Enable, charStylePaste
+
+		GuiControl, Move, charDifficulty_Classic, w20 x+55
+		GuiControl, Move, charDifficulty_Mediumcore, w20 x+85
+		GuiControl, Move, charDifficulty_Hardcore, w20 x+115
+
+		GuiControl, Text, worldDifficulty_Classic, C
+		GuiControl, Text, worldDifficulty_Expert, E
+		GuiControl, Move, worldDifficulty_Classic, w20 x+205
+		GuiControl, Move, worldDifficulty_Expert, w20 x+235
+
+		global requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
+	}
+	for key, varArray in (gui_Arrays) {
+		varSplit := StrSplit(varArray, "_")
+		varName := varSplit[1]
+		var := %varName%
+		for key, varSetting in (%varArray%) {
+			if (varSetting = var) {
+				GuiControl, Disable, %varName%_%varSetting%
+			} else {
+				GuiControl, Enable, %varName%_%varSetting%
+			}
+		}
+	}
+}
+
+AdvancedSpeedSettings:
+Gui, SpeedSettings:New, +OwnerMain
+Gui, Main:+Disabled
+Gui, -SysMenu
+
+Gui, Add, GroupBox, Section h120 w290 Center, Advanced Speed Settings
+	Gui, Add, Text, xp+15 ys+18, Key Duration:
+	Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
+	keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
+	keyDuration_SB := "Key Duration"
+	Gui, Add, Text, xp yp+26, Key Buffer:
+	Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
+	keyWait_TT := "The time between key presses. (in ms)`nIncrease if the macro is missing inputs."
+	keyWait_SB := "Key Buffer"
+	Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
+	Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
+	waitMultiplier_TT := "Multiplies load wait time by this number.`nIncrease if the macro is continuing too fast."
+	waitMultiplier_SB := "Wait Multiplier"
+
+	Gui, Add, Button, xp yp+45 w110 h22 vsaveAdvancedSettings gCloseAdvancedSettings, Save
+
+	Gui, Add, Text,xs+10 ys+125, Note: Adjusting the speed slider will undo these settings.
+
+Gui, Show, AutoSize Center, Advanced Speed Settings
+Return
+
+CloseAdvancedSettings:
+Gui, Main:-Disabled
+Gui, SpeedSettings:Submit
+Return
 
 Settings:
 Gui, Settings:New, +OwnerMain
@@ -801,7 +985,7 @@ Gui, Add, GroupBox, h250 w170 Center Section, Settings
 		GuiControl,, dontShowUnsavedPopup, 1
 	}
 
-Gui, Add, GroupBox, h185 w170 Section Center xs ys+258, Terraria Directories:
+Gui, Add, GroupBox, h185 w170 Section Center xs ys+258, Terraria Directories
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
@@ -928,7 +1112,6 @@ for key, newSettingName in (categorySettings_Array) {
 }
 if (unsavedChanges != 1) {
 	Gui, Main:Submit
-	Gui, Main:Destroy
 	goto Hotkey
 	Return
 }
@@ -968,7 +1151,6 @@ if (dontShowUnsavedPopup = 1) {
 	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
 }
 Gui, Main:Submit
-Gui, Main:Destroy
 goto Hotkey
 Return
 
@@ -984,7 +1166,6 @@ if (dontShowUnsavedPopup = 1) {
 	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
 }
 Gui, Main:Submit
-Gui, Main:Destroy
 goto Hotkey
 Return
 
@@ -1244,7 +1425,11 @@ updateChecker() {
 			Continue
 		} else { ; new version
 			OutputDebug, % "New macro version " newMacroVersion " available. Current version is " macroVersion
+			if (showOnStart != 0) {
 			Gui, Updater:New, +OwnerMain
+			} else {
+				Gui, Updater:New
+			}
 				Gui, Add, Text,, There is a new update available.
 				Gui, Add, Text,center, v%macroVersion% > v%newMacroVersion%
 				updateChangelogLink := "https://github.com/iinterp/TerrariaResetMacro/releases/tag/" newMacroVersion
@@ -1288,6 +1473,7 @@ updateChecker() {
 		Gui, Updater:Submit
 		Reload
 }
+
 
 
 
@@ -1346,7 +1532,19 @@ worldExist := FileExist(worldDir "\*.wld")
 if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
 	FileDelete, %terrariaDir%/servers.dat
 }
-global oldClipboard := ClipboardAll
+
+GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
+
+if (winHeight >= 1620) {
+	OutputDebug, % "1620"
+	global 1p3ClickArray := [6.35,4.9,7.78,1.75,6.95,6,1.83,1.03,4.98,5.4,4.76,4.15,4.5,2.36,6.75,5.68,6.48]
+} else if (winHeight >= 1440) {
+	OutputDebug, % "1440"
+	global 1p3ClickArray := [4.23,3.27,5.14,1.65,4.64,4,1.76,1.05,3.34,3.6,3.2,2.74,3,2.6,4.5,3.78,4.36]
+} else {
+	OutputDebug, % "else"
+	global 1p3ClickArray := [3.17,2.45,3.85,1.56,3.48,3,1.7,1.06,2.5,2.7,2.37,2.05,2.25,2.87,3.37,2.84,3.27]
+}
 
 reset%resetMode%(charName, worldName, charExist, worldExist)
 firstMacroLaunch := 0
@@ -1364,44 +1562,155 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "GLOBALRESETS", globalResets)
 	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
-	if (multiplayer = 1) {
-		sendMouse(2, 2.95)
-		if (multiplayerMethod = "Host") {
-			sendMouse(2, 2.05, 220)
+
+	if (version != 4) { ;if 1.4+ use different version of the macro
+
+		if (version == 1 || version == 2) {
+			singleplayerButtonY := 3.6
+			multiplayerButtonY := 2.95
+		}
+
+		if (version == 3) {
+			singleplayerButtonY := 3.3
+			multiplayerButtonY := 2.66
+		}
+
+		if (multiplayer = 1) {
+			sendMouse(2, multiplayerButtonY)
+			if (multiplayerMethod = "Host") {
+				sendMouse(2, 2.05, 220)
+			} else {
+				sendMouse(2, 3.2, 220)
+			}
 		} else {
-			sendMouse(2, 3.2, 220)
+		sendMouse(2, singleplayerButtonY, 220) ;singleplayer
+		}
+
+		if (charExist != "") {
+		sendMouse(1.46, 2.88, 110) ;delete character
+		sendMouse(2, 2.5, 220) ;delete character
+		}
+		sendMouse(1.66, 1.08, 220) ;new character
+
+			if (charDifficulty != "Classic" && version == 1) { ;classic is pre selected on 1.4.4
+			if (charDifficulty = "Journey") {
+				sendMouse(2.44, 2.3) ;journey
+			} else if (charDifficulty = "Mediumcore") {
+				sendMouse(2.44, 2) ;mediumcore
+			} else if (charDifficulty = "Hardcore") {
+				sendMouse(2.44, 1.9) ;hardcore
+			}
+		} else if (version != 1) {
+			if (charDifficulty = "Classic") {
+				sendMouse(2.44, 2.16)
+			} else if (charDifficulty = "Mediumcore") {
+				sendMouse(2.44, 2) ;mediumcore
+			} else if (charDifficulty = "Hardcore") {
+				sendMouse(2.44, 1.9) ;hardcore
+			}
+		}
+
+		if (charStyle != "Default") {
+			sendMouse(2.56, 3, 75) ;character style
+			if (charStyle = "Random") {
+				sendMouse(1.88, 1.95, 75) ;random style
+			} else {
+				clipboard := charStylePaste
+				sendMouse(2, 1.95, 75) ;paste style
+			}
+		}
+		sendMouse(1.72, 1.7, 300) ;create
+		paste(charName, 1, 50)
+		sendKey("enter", 1, 150)
+		sendMouse(3.15, 2.88, 250) ;select character
+		if (multiplayer = 1 && multiplayerMethod = "Join") {
+			sendKey("z", 1,, "^")
+			paste(IP)
+			sendKey("enter", 2)
+			sendMouse(2, 2)
+			return
+		}
+		if (worldExist != "") {
+		sendMouse(1.46, 2.9, 50) ;delete world
+		sendMouse(2, 2.5, 150) ;delete world
+		}
+		sendMouse(1.66, 1.08, 220) ;new world
+		if (worldEvil != "Random") { ;random is pre selected
+			if (worldEvil = "Corruption") {
+				sendMouse(2, 2.15) ;corruption
+			} else {
+				sendMouse(1.65, 2.15) ;crimson
+				}
+		}
+		if (worldDifficulty != "Classic" && charDifficulty != "Journey" || (charDifficulty != "Journey" && worldDifficulty != "Journey")) { ;classic is preselected & journey is preselected for journey characters ;world difficulty / J = 2.5 / C = 2.15 / E = 1.85 / M = 1.65
+			if (worldDifficulty = "Expert") {
+				sendMouse(1.85, 2.45) ;expert
+			} 
+			if (worldDifficulty = "Master") {
+				sendMouse(1.65, 2.45) ;master
+			}
+			if (worldDifficulty = "Journey") {
+				sendMouse(2.55, 2.45)
+			}
+		} else if (charDifficulty = "Journey" && worldDifficulty = "Classic") {
+			sendMouse(2.15, 2.45)
+		}
+		if (worldSize = "Small" && version == 1) { ;small is preselected on <1.4.4
+			sendMouse(2.4, 2.8) ;small
+		} else if (worldSize = "Medium" && version != 1) { ;medium is preselected on 1.4.4+
+			sendMouse(2, 2.8) ;medium
+		} else if (worldSize = "Large") {
+			sendMouse(1.67, 2.8) ;large
+		}
+
+		if (worldSeed != "") {
+		sendMouse(2, 3.25, 150) ;world seed
+		paste(worldSeed)
+		sendKey("enter", 1, 200)
+		}
+		if (worldName != "") {
+		sendMouse(2, 3.9, 315) ;world name
+		paste(worldName, 1, 50)
+		sendKey("enter", 1, 150)
+		}
+		sendMouse(1.72, 1.7) ;create
+	} else if (version == 4) { ; if version is 1.3- different version of the macro
+		if (multiplayer = 1) {
+			sendMouse(2, 1p3ClickArray[1])
+		if (multiplayerMethod = "Host") {
+			sendMouse(2, 1p3ClickArray[2], 200)
+		} else {
+			sendMouse(2, 1p3ClickArray[3], 200)
 		}
 	} else {
-	sendMouse(2, 3.6, 220) ;singleplayer
+		sendMouse(2, 1p3ClickArray[3], 200) ;singleplayer
 	}
 	if (charExist != "") {
-	sendMouse(1.46, 2.88, 50) ;delete character
-	sendMouse(2, 2.5, 200) ;delete character
-	}
-	sendMouse(1.66, 1.08, 200) ;new character
+		sendMouse(1p3ClickArray[4], 1p3ClickArray[5]) ;delete character
+		sendMouse(2, 1p3ClickArray[6], 150) ;delete character
+		}
 
-		if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is pre selected
-		if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
-			sendMouse(2.44, 2.3) ;journey
-		} else if (charDifficulty = "Mediumcore") {
-			sendMouse(2.44, 2) ;mediumcore
-		} else if (charDifficulty = "Hardcore") {
-			sendMouse(2.44, 1.9) ;hardcore
-		}
-	}
-	if (charStyle != "Default") {
-		sendMouse(2.56, 3, 75) ;character style
-		if (charStyle = "Random") {
-			sendMouse(1.88, 1.95) ;random style
+	sendMouse(1p3ClickArray[7], 1p3ClickArray[8]) ;new character
+
+	if (charDifficulty != "Classic") {
+		sendMouse(2, 1p3ClickArray[9])
+		if (charDifficulty = "Mediumcore") {
+		sendMouse(2, 1p3ClickArray[10])
 		} else {
-			clipboard := charStylePaste
-			sendMouse(2, 1.95) ;paste style
+		sendMouse(2, 1p3ClickArray[11])
 		}
 	}
-	sendMouse(1.72, 1.7) ;create
+
+	if (charStyle = "Random") {
+		sendMouse(2, 1p3ClickArray[12], 50)
+	}
+
+	sendMouse(2, 1p3ClickArray[13], 100) ;Create character
 	paste(charName)
 	sendKey("enter", 1, 150)
-	sendMouse(3.15, 2.88, 200) ;select character
+
+	sendMouse(1p3ClickArray[14], 1p3ClickArray[5], 200) ; Select character
+
 	if (multiplayer = 1 && multiplayerMethod = "Join") {
 		sendKey("z", 1,, "^")
 		paste(IP)
@@ -1409,56 +1718,54 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		sendMouse(2, 2)
 		return
 	}
+
 	if (worldExist != "") {
-	sendMouse(1.46, 2.9) ;delete world
-	sendMouse(2, 2.5, 200) ;delete world
-	}
-	sendMouse(1.66, 1.08, 200) ;new world
-	if (worldEvil != "Random") { ;random is pre selected
-		if (worldEvil = "Corruption") {
-			sendMouse(2, 2.15) ;corruption
-		} else {
-			sendMouse(1.65, 2.15) ;crimson
-			}
-	}
-	if (worldDifficulty != "Classic" && charDifficulty != "Journey") { ;classic is preselected & journey is preselected for journey characters ;world difficulty / J = 2.5 / C = 2.15 / E = 1.85 / M = 1.65
-		if (worldDifficulty = "Expert") {
-			sendMouse(1.85, 2.45) ;expert
-		} 
-		if (worldDifficulty = "Master") {
-			sendMouse(1.65, 2.45) ;master
+		sendMouse(1p3ClickArray[4], 1p3ClickArray[5]) ;delete world
+		sendMouse(2, 1p3ClickArray[6], 150) ;delete world
 		}
-		if (worldDifficulty = "Journey") {
-			sendMouse(2.55, 2.45)
-		}
+	
+	sendMouse(1p3ClickArray[7], 1p3ClickArray[8]) ;new world
 
+	if (worldSize = "Small") {
+		sendMouse(2, 1p3ClickArray[15])
 	}
-	if (worldSize = "Small" && version >= "1.4.4") { ;small is preselected on <1.4.4
-		sendMouse(2.4, 2.8) ;small
-	} else if (worldSize = "Medium" && version < "1.4.4") { ;medium is preselected on 1.4.4+
-		sendMouse(2, 2.8) ;medium
-	} else if (worldSize = "Large") {
-		sendMouse(1.67, 2.8) ;large
+	if (worldSize = "Medium") {
+		sendMouse(2, 1p3ClickArray[16])
+	}
+	if (worldSize = "Large") {
+		sendMouse(2, 1p3ClickArray[2])
 	}
 
-	if (worldSeed != "") {
-	sendMouse(2, 3.25) ;world seed
-	paste(worldSeed)
-	sendKey("enter", 1, 125)
+	if (worldDifficulty = "Classic") {
+		sendMouse(2, 1p3ClickArray[16])
 	}
-	if (worldName != "") {
-	sendMouse(2, 3.9) ;world name
+	if (worldDifficulty = "Expert") {
+		sendMouse(2, 1p3ClickArray[2])
+	}
+
+	if (worldEvil = "Crimson") {
+		sendMouse(2, 1p3ClickArray[16], 250)
+	}
+	if (worldEvil = "Corruption") {
+		sendMouse(2, 1p3ClickArray[15], 250)
+	}
+	if (worldEvil = "Random") {
+		sendMouse(2, 1p3ClickArray[2], 250)
+	}
+
 	paste(worldName)
 	sendKey("enter", 1, 150)
+
+	if (worldSeed) {
+		paste(worldSeed)
+		sendKey("enter", 1)
+	} else {
+		sendMouse(2, 1p3ClickArray[17])
 	}
-	sendMouse(1.72, 1.7) ;create
-	sendMouse(2, 2)
-	clipboard := oldClipboard
-	oldClipboard := ""
+	}
 }
 
 sendMouse(X, Y, wait:="") {
-	GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
 	X := winWidth / X
 	Y := winHeight / Y
 
@@ -1520,58 +1827,85 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		sendKey("d", 4) ;move to delete char
 		sendKey("space", 2, 100) ;delete char
 	}
-	sendKey("s") ;move to back
+	sendKey("s", 5) ;move to back
 	sendKey("d") ;move to new
 	sendKey("space", 1, 200) ;new
-	if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is preselected
-		if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
-			sendKey("w", 4)
-			sendKey("space")
-			if (charStyle = "Default") {
-			sendKey("s", 4)
-			} else {
-				sendKey("w", 2)
-			}
-		} else if (charDifficulty = "Mediumcore") {
-			sendKey("w", 2)
-			sendKey("space")
-			if (charStyle = "Default") {
-			sendKey("s", 2)
-			} else {
+	if (version != 4) {
+		if (charDifficulty != "Classic" || worldDifficulty = "Journey") { ;classic is preselected
+			if (charDifficulty = "Journey" || worldDifficulty = "Journey") { ;override and select journey if world difficulty is journey
 				sendKey("w", 4)
+				sendKey("space")
+				if (charStyle = "Default") {
+				sendKey("s", 4)
+				} else {
+					sendKey("w", 2)
+				}
+			} else if (charDifficulty = "Mediumcore") {
+				sendKey("w", 2)
+				sendKey("space")
+				if (charStyle = "Default") {
+				sendKey("s", 2)
+				} else {
+					sendKey("w", 4)
+				}
+			} else if (charDifficulty = "Hardcore") {
+				sendKey("w")
+				sendKey("space")
+				if (charStyle = "Default") {
+				sendKey("s", 1)
+				} else {
+					sendKey("w", 5)
+				}
 			}
-		} else if (charDifficulty = "Hardcore") {
-			sendKey("w")
-			sendKey("space")
-			if (charStyle = "Default") {
-			sendKey("s", 1)
-			} else {
-				sendKey("w", 5)
-			}
-		}
-		sendKey("d")
-	}
-
-	if (charStyle != "Default") {
-
-		if (charDifficulty = "Classic") {
-			sendKey("w", 6)
 			sendKey("d")
-		} 
+		}
+
 		if (charStyle != "Default") {
+
+			if (charDifficulty = "Classic") {
+				sendKey("w", 6)
+				sendKey("d")
+			} 
+			if (charStyle != "Default") {
+				sendKey("space")
+				sendKey("s", 2)
+			}
+			if (charStyle = "Random") {
+				sendKey("d", 3)
+			} else {
+				sendKey("d", 2)
+				clipboard := charStylePaste
+			}
 			sendKey("space")
-			sendKey("s", 2)
+			sendKey("s")
+			sendKey("d")
 		}
-		if (charStyle = "Random") {
-			sendKey("d", 3)
-		} else {
-			sendKey("d", 2)
-			clipboard := charStylePaste
+	} else if (version == 4) {
+		sendKey("s", 5) ;move to char difficulty
+		if (charDifficulty != "Classic") {
+			sendKey("space", 1, 100)
+			
+			if (charDifficulty = "Mediumcore") {
+				sendKey("s")
+				sendKey("space", 1, 100)
+				sendKey("s", 5)
+			}
+			if (charDifficulty = "Hardcore") {
+				sendKey("s", 2)
+				sendKey("space", 1, 100)
+				sendKey("s", 5)
+			}
 		}
-		sendKey("space")
+
 		sendKey("s")
-		sendKey("d")
+		
+		if (charStyle = "Random") {
+			sendKey("s")
+			sendKey("space")
+			sendKey("w")
+		}
 	}
+
 	sendKey("space", 1) ;name
 	paste(charName) ;input name
 	sendKey("enter") ;enter name
@@ -1591,64 +1925,96 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	sendKey("s") ;move to back
 	sendKey("d") ;move to new
 	sendKey("space", 1, 160) ;open world
-	sendKey("w") ;move to crimson
-	if (worldEvil = "Corruption") {
-		sendKey("a")
-		sendKey("space") ;select corruption
-		sendKey("d")
-	} else if (worldEvil = "Crimson") {
-		sendKey("space", 1) ;select crimson
+
+	if (version != 4) {
+		sendKey("w") ;move to crimson
+		if (worldEvil = "Corruption") {
+			sendKey("a")
+			sendKey("space") ;select corruption
+			sendKey("d")
+		} else if (worldEvil = "Crimson") {
+			sendKey("space", 1) ;select crimson
+			}
+		sendKey("w")
+		if (worldDifficulty != "Classic" && charDifficulty != "Journey") {
+			if (worldDifficulty = "Expert") {
+				sendKey("a")
+				sendKey("space")
+				sendKey("d")
+			}
+			if (worldDifficulty = "Master") {
+				sendKey("space")
+			}
 		}
-	sendKey("w")
-	if (worldDifficulty != "Classic" && charDifficulty != "Journey") {
-		if (worldDifficulty = "Expert") {
+		sendKey("w")
+		if (worldSize = "Large") {
+			sendKey("space")
+		}
+		if (worldSize = "Medium" && version >= 2)
+		{
 			sendKey("a")
 			sendKey("space")
-			sendKey("d")
 		}
-		if (worldDifficulty = "Master") {
+		sendKey("w") ;move to seed
+		if (worldSeed != "") {
 			sendKey("space")
+			paste(worldSeed)
+			sendKey("enter", 1, 60)
 		}
-	}
-	sendKey("w")
-	if (worldSize = "Large") {
+		if (worldName != "") {
+			sendKey("w")
+			sendKey("space")
+			paste(worldName)
+			sendKey("enter")
+			sendKey("s")
+		}
+		sendKey("s") ;move to small
+		if (worldSize = "Small" && version = 1) {
+			sendKey("space") ;select small
+		}
+			if (worldDifficulty = "Journey" && charDifficulty = "Journey") {
+				sendKey("s")
+				sendKey("space")
+				sendKey("s", 2)
+			} else {
+			sendKey("s", 3) ;move to back
+			}
+		sendKey("d") ;move to create
+		sendKey("space") ;create world
+	} else if (version == 4) {
+		if (worldSize = "Medium") {
+			sendKey("s")
+		}
+		if (worldSize = "Large") {
+			sendKey("s", 2)
+		}
+		sendKey("space", 1, 100)
+
+		if (worldDifficulty = "Expert") {
+			sendKey("s")
+		}
 		sendKey("space")
-	}
-	if (worldSize = "Medium" && version < "1.4.4")
-	{
-		sendKey("a")
-		sendKey("space")
-	}
-	sendKey("w") ;move to seed
-	if (worldSeed != "") {
-		sendKey("space")
-		paste(worldSeed)
-		sendKey("enter", 1, 60)
-	}
-	if (worldName != "") {
-		sendKey("w")
+
+		if (worldEvil = "Crimson") {
+			sendKey("s")
+		}
+		if (worldEvil = "Random") {
+			sendKey("s", 2)
+		}
 		sendKey("space")
 		paste(worldName)
-		sendKey("enter")
-		sendKey("s")
-	}
-	sendKey("s") ;move to small
-	if (worldSize = "Small" && version >= "1.4.4") {
-		sendKey("space") ;select small
-	}
-		if (worldDifficulty = "Journey" && charDifficulty = "Journey") {
-			sendKey("s")
-			sendKey("space")
-			sendKey("s", 2)
+		sendKey("enter", 1, 150)
+
+		if (worldSeed) {
+			paste(worldSeed)
+			sendKey("enter", 1)
 		} else {
-		sendKey("s", 3) ;move to back
+			sendMouse(2, 1p3ClickArray[17])
 		}
-	sendKey("d") ;move to create
-	sendKey("space") ;create world
-	clipboard := oldClipboard
-	oldClipboard := ""
+	}
 }
 paste(paste, times:=1, wait:="") {
+	oldClipboard := ClipboardAll
 	if (wait != "") {
 	keyWaitOld := keyWait
 	keyWait := wait * waitMultiplier
@@ -1663,6 +2029,8 @@ paste(paste, times:=1, wait:="") {
 	if (wait != "") {
 		keyWait := keyWaitOld
 	}
+	Clipboard := oldClipboard
+	oldClipboard := ""
 }
 sendKey(key, times:=1, wait:="", modifier:="") {
 	if (wait != "") {
