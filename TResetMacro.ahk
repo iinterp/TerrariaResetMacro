@@ -1,5 +1,5 @@
 SetWorkingDir %A_ScriptDir%
-global macroVersion := "1.2.0"
+global macroVersion := "1.3.0"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
