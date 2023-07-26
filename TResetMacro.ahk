@@ -158,14 +158,14 @@ if (firstTimeOpening == 1) {
 Gui, Settings:Submit
 Gui, Main:New
 
-	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
+	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode
 		resetMode_SB := "Reset Mode"
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
 		resetMode_Mouse_TT := "Uses the mouse to reset.`nUsually faster, but may not work with all screen resolutions."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
 		resetMode_Keyboard_TT := "Uses the keyboard to reset.`Usually slower, but works with all screen resolutions."
 
-	Gui, Add, GroupBox, xs ys+70 Section Center w290 h90, Macro Settings:
+	Gui, Add, GroupBox, xs ys+70 Section Center w290 h90, Macro Settings
 		Gui, Add, Text, xs+15 ys+18 vhotkeyText, Hotkey:
 		Gui, Add, Hotkey, w212 x+m yp vresetKeybind gGUISaver, %resetKeybind%
 		resetKeybind_TT := "The hotkey to press to activate the macro."
@@ -177,7 +177,7 @@ Gui, Main:New
 		Gui, Add, Button, vadvancedButton gAdvancedSpeedSettings xp+225 yp+29 w15 h15, +
 		advancedButton_TT := "Advanced Speed Settings"
 
-	Gui, Add, GroupBox, Center Section xs ys+100 w290 h75, Preset:
+	Gui, Add, GroupBox, Center Section xs ys+100 w290 h75, Preset
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, DropDownList, x+m yp-2 w60 vversion gGUISaver choose%version% AltSubmit, 1.4.4|1.4.2|1.4|1.3
@@ -186,12 +186,12 @@ Gui, Main:New
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
 		
-	Gui, Add, GroupBox, Center Section xs ym+255 h50, Character Name:
+	Gui, Add, GroupBox, Center Section xs ym+255 h50, Character Name
 		Gui, Add, Edit, xp+15 yp+18 r1 w110 vcharName gGUISaver, %charName%
 		charName_TT := "Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 		charName_SB := "Character Name"
 
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, Character Difficulty:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, Character Difficulty
 		charDifficulty_SB := "Character Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vcharDifficulty_Journey gGUISaver, J
 		charDifficulty_Journey_TT := "Journey"
@@ -202,7 +202,7 @@ Gui, Main:New
 		Gui, Add, Button, x+m w20 vcharDifficulty_Hardcore gGUISaver, H
 		charDifficulty_Hardcore_TT := "Hardcore"
 
-	Gui, Add, GroupBox, Center Section xs ys+60 h110, Character Style:
+	Gui, Add, GroupBox, Center Section xs ys+60 h110, Character Style
 		charStyle_SB := "Character Style"
 		Gui, Add, Button, xp+15 yp+18 w50 vcharStyle_Default gGUISaver, Default
 		Gui, Add, Button, x+m w50 vcharStyle_Random gGUISaver, Random
@@ -211,13 +211,13 @@ Gui, Main:New
 		charStylePaste_TT := "Paste character template to use as style."
 		charStylePaste_SB := "Character Template"
 
-		Gui, Add, GroupBox, Center Section xs ys+120 h50, Multiplayer:
+		Gui, Add, GroupBox, Center Section xs ys+120 h50, Multiplayer
 			multiplayer_SB := "Multiplayer"
 			multiplayerMethod_SB := "Multiplayer method"
 			Gui, Add, Checkbox, vmultiplayer gGUISaver xs+15 yp+22 checked%multiplayer%, Multiplayer
 		Gui, Add, Button, xs ys+66 w140 h40 vsettings gSettings, Settings
 		Gui, Add, Text, vtipText xs yp+46 w290 Center, %tipText%
-		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings:
+		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings
 			Gui, Add, Button, xs+15 yp+22 w50 vmultiplayerMethod_Host gGUISaver, Host
 			multiplayerMethod_Host_TT := "Makes you the host."
 			Gui, Add, Button, x+m yp w50 vmultiplayerMethod_Join gGUISaver, Join
@@ -228,11 +228,11 @@ Gui, Main:New
 
 ;----
 
-	Gui, Add, GroupBox, Center xs+150 ym+255 Section h50, World Name:
+	Gui, Add, GroupBox, Center xs+150 ym+255 Section h50, World Name
 		worldName_SB := "World Name"
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
 		worldName_TT := "Leave blank for random. [Except in 1.3]`nCan use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty
 		worldDifficulty_SB := "World Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vworldDifficulty_Journey gGUISaver, J
 		worldDifficulty_Journey_TT := "Journey"
@@ -242,7 +242,7 @@ Gui, Main:New
 		worldDifficulty_Expert_TT := "Expert"
 		Gui, Add, Button, x+m w20 vworldDifficulty_Master gGUISaver, M
 		worldDifficulty_Master_TT := "Master"
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Size:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Size
 		worldSize_SB := "World Size"
 		Gui, Add, Button, xp+15 yp+18 w30 vworldSize_Small gGUISaver, S
 		worldSize_Small_TT := "Small"
@@ -250,7 +250,7 @@ Gui, Main:New
 		worldSize_Medium_TT := "Medium"
 		Gui, Add, Button, x+m w30 vworldSize_Large gGUISaver, L
 		worldSize_Large_TT := "Large"
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Evil:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Evil
 		worldEvil_SB := "World Evil"
 		Gui, Add, Button, xp+15 yp+18 w30 vworldEvil_Random gGUISaver, Ran
 		worldEvil_Random_TT := "Random"
@@ -258,7 +258,7 @@ Gui, Main:New
 		worldEvil_Crimson_TT := "Crimson"
 		Gui, Add, Button, x+m w30 vworldEvil_Corruption gGUISaver, Corr
 		worldEvil_Corruption_TT := "Corruption"
-	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Seed:
+	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Seed
 		worldSeed_SB := "World Seed"
 		Gui, Add, Edit,r1 vworldSeed gGUISaver w110 xp+15 yp+18, %worldSeed%
 		worldSeed_TT := "Leave blank for random."
@@ -328,7 +328,7 @@ Gui, IncorrectDirectory:New
 
 Gui, -SysMenu
 
-Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories:
+Gui, Add, GroupBox, h185 w350 Section Center, Terraria Directories
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games\Terraria):
 	Gui, Add, Edit, r1 xs+15 yp+22 w320 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
@@ -903,7 +903,7 @@ Gui, SpeedSettings:New, +OwnerMain
 Gui, Main:+Disabled
 Gui, -SysMenu
 
-Gui, Add, GroupBox, Section h120 w290 Center, Advanced Speed Settings:
+Gui, Add, GroupBox, Section h120 w290 Center, Advanced Speed Settings
 	Gui, Add, Text, xp+15 ys+18, Key Duration:
 	Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
 	keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
@@ -966,7 +966,7 @@ Gui, Add, GroupBox, h250 w170 Center Section, Settings
 		GuiControl,, dontShowUnsavedPopup, 1
 	}
 
-Gui, Add, GroupBox, h185 w170 Section Center xs ys+258, Terraria Directories:
+Gui, Add, GroupBox, h185 w170 Section Center xs ys+258, Terraria Directories
 	Gui, Add, Text, xs+15 ys+22 vterrariaSavesDirText, Saves Directory (My Games):
 	Gui, Add, Edit, r1 xs+15 yp+22 w140 vterrariaDir gGUISaver, %terrariaDir%
 	terrariaDir_TT := "Terraria saves directory.`nUsually in the 'My Games' folder.`nSelected folder should be 'Terraria'."
