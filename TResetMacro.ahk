@@ -13,6 +13,7 @@ FileDelete, old_TResetMacro.exe
 CoordMode, Mouse, Client
 SetWorkingDir %A_ScriptDir%
 
+global macroSpeed
 global resetKeybind
 global passthrough
 global keyDuration
@@ -47,6 +48,7 @@ global showOnStart
 global version
 
 global firstMacroLaunch
+global firstTimeOpening
 
 global resetSelection
 global presetResetsNum
@@ -58,9 +60,9 @@ global preset_Array := []
 global preset_ArrayString
 
 
-global macroSettings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
+global macroSettings_Array := ["macroSpeed","runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose"]
 global categorySettings_Array := ["version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
-global settings_Array := ["runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
+global settings_Array := ["firstTimeOpening","macroSpeed","runOnStart","terrariaGameDir","disableSeasons","dontShowUnsavedPopup","resetKeybind","passthrough","showOnStart","keyDuration","waitMultiplier","keyWait","moveFiles","deleteFiles","permanentlyDelete","resetMode","ignoredMacroVersion","terrariaDir","clearServers","autoClose","version","charName","charDifficulty","charStyle","charStylePaste","worldName","worldDifficulty","worldSize","worldEvil","worldSeed","multiplayer","multiplayerMethod","IP"]
 
 global resetMode_Array := ["Keyboard", "Mouse"]
 global charDifficulty_Array := ["Journey", "Classic", "Mediumcore", "Hardcore"]
@@ -144,35 +146,38 @@ if (firstLaunch = 0) {
 
 SetTimer, AutoClose, Off
 
+if (firstTimeOpening == 1) {
+	tipText := 	"Hover any control for a helpful tooltip!"
+	IniWrite, 0, settings.ini, settings, firstTimeOpening
+} else {
+	tipArray := ["Hover any control for a helpful tooltip!","Hover any control for a helpful tooltip!","Hover any control for a helpful tooltip!","You can use reset variables in your character/world names.`nGLOBALRESETS, PRESETRESETS && SESSIONRESETS", "You can enable file deletion in the settings to reset faster.","You can edit your reset count in the settings.","You can disable showing this menu on start in the settings."]
+	Random, randNum , 1, 7
+	tipText := tipArray[randNum]
+}
+
 Gui, Settings:Submit
 Gui, Main:New
 
 	Gui, Add, GroupBox, Section h60 w290 Center, Reset Mode:
 		resetMode_SB := "Reset Mode"
 		Gui, Add, Button, xs+15 ys+18 w120 h30 vresetMode_Mouse gGUISaver, Mouse
-		resetMode_Mouse_TT := "Uses the mouse to reset.`nCan be faster, but more inconsistent."
+		resetMode_Mouse_TT := "Uses the mouse to reset.`nUsually faster, but may not work with all screen resolutions."
 		Gui, Add, Button, xp+140 yp w120 h30 vresetMode_Keyboard gGUISaver, Keyboard
-		resetMode_Keyboard_TT := "Uses the keyboard to reset.`nSometimes slower, but more consistent."
+		resetMode_Keyboard_TT := "Uses the keyboard to reset.`Usually slower, but works with all screen resolutions."
 
-	Gui, Add, GroupBox, xs ys+70 Section Center w290 h120, Macro Settings:
-		Gui, Add, Text, xs+15 ys+18, Hotkey:
-		Gui, Add, Hotkey, w110 vresetKeybind gGUISaver, %resetKeybind%
+	Gui, Add, GroupBox, xs ys+70 Section Center w290 h90, Macro Settings:
+		Gui, Add, Text, xs+15 ys+18 vhotkeyText, Hotkey:
+		Gui, Add, Hotkey, w212 x+m yp vresetKeybind gGUISaver, %resetKeybind%
 		resetKeybind_TT := "The hotkey to press to activate the macro."
 		resetKeybind_SB := "Reset Hotkey"
-		Gui, Add, Text, xp yp+26, Key Duration:
-		Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
-		keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
-		keyDuration_SB := "Key Duration"
-		Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
-		Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
-		waitMultiplier_TT := "Multiplies load wait time by this number.`nIncrease if the macro is continuing too fast."
-		waitMultiplier_SB := "Wait Multiplier"
-		Gui, Add, Text, xp yp+26, Key Buffer:
-		Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
-		keyWait_TT := "The time between key presses. (in ms)`nIncrease if the macro is missing inputs."
-		keyWait_SB := "Key Buffer"
+		Gui, Add, Text, vfasterText yp, Faster
+		Gui, Add, Text, vslowerText yp, Slower
+		Gui, Add, Slider, Range10-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w190, %macroSpeed%
+		macroSpeed_TT := "The speed the macro resets at.`nSlow this down if you are having issues."
+		Gui, Add, Button, vadvancedButton gAdvancedSpeedSettings xp+225 yp+29 w15 h15, +
+		advancedButton_TT := "Advanced Speed Settings"
 
-	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
+	Gui, Add, GroupBox, Center Section xs ys+100 w290 h75, Preset:
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, DropDownList, x+m yp-2 w60 vversion gGUISaver choose%version% AltSubmit, 1.4.4|1.4.2|1.4|1.3
@@ -181,7 +186,7 @@ Gui, Main:New
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
 		
-	Gui, Add, GroupBox, Center Section xs ym+285 h50, Character Name:
+	Gui, Add, GroupBox, Center Section xs ym+255 h50, Character Name:
 		Gui, Add, Edit, xp+15 yp+18 r1 w110 vcharName gGUISaver, %charName%
 		charName_TT := "Can use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 		charName_SB := "Character Name"
@@ -211,6 +216,7 @@ Gui, Main:New
 			multiplayerMethod_SB := "Multiplayer method"
 			Gui, Add, Checkbox, vmultiplayer gGUISaver xs+15 yp+22 checked%multiplayer%, Multiplayer
 		Gui, Add, Button, xs ys+66 w140 h40 vsettings gSettings, Settings
+		Gui, Add, Text, vtipText xs yp+46 w290 Center, %tipText%
 		Gui, Add, GroupBox, Center Section xs ys+60 h100 vmultiplayerSettings, Multiplayer Settings:
 			Gui, Add, Button, xs+15 yp+22 w50 vmultiplayerMethod_Host gGUISaver, Host
 			multiplayerMethod_Host_TT := "Makes you the host."
@@ -222,10 +228,10 @@ Gui, Main:New
 
 ;----
 
-	Gui, Add, GroupBox, Center xs+150 ym+285 Section h50, World Name:
+	Gui, Add, GroupBox, Center xs+150 ym+255 Section h50, World Name:
 		worldName_SB := "World Name"
 		Gui, Add, Edit,r1 vworldName gGUISaver w110 xp+15 yp+18, %worldName%
-		worldName_TT := "Leave blank for random.`nCan use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
+		worldName_TT := "Leave blank for random. [Except in 1.3]`nCan use GLOBALRESETS, PRESETRESETS and SESSIONRESETS variables."
 	Gui, Add, GroupBox, Center Section xs ys+60 h50, World Difficulty:
 		worldDifficulty_SB := "World Difficulty"
 		Gui, Add, Button, xp+15 yp+18 w20 vworldDifficulty_Journey gGUISaver, J
@@ -256,8 +262,8 @@ Gui, Main:New
 		worldSeed_SB := "World Seed"
 		Gui, Add, Edit,r1 vworldSeed gGUISaver w110 xp+15 yp+18, %worldSeed%
 		worldSeed_TT := "Leave blank for random."
-	Gui, Add, Button, xs ys+66 w140 h40 vSnQ gSnQ, Save
-	Gui, Add, Button, xs ys+66 w140 h40 vsettings2 gSettings, Settings
+	Gui, Add, Button, xs ys+66 w140 h40 vSnQ gSnQ Section, Save
+	Gui, Add, Button, xs ys w140 h40 vsettings2 gSettings, Settings
 	Gui, Add, Button, xs yp+54 w140 h40 vSnQ2 gSnQ, Save
 
 GUIInit()
@@ -458,6 +464,9 @@ LoadSettings() {
 		}
 		%settingName% := setting
 	}
+
+	IniRead, firstTimeOpening, settings.ini, Settings, firstTimeOpening, 1
+
 	if (moveFiles = 0) {
 		deleteFiles = 0
 	}
@@ -634,6 +643,31 @@ DeletePreset() {
 	}
 }
 
+SpeedCalc() {
+	global waitMultiplier := macroSpeed / 10
+	if (macroSpeed == 10) {
+		global keyDuration := 1
+		global keyWait := 1
+	} else if (macroSpeed < 20) {
+		global keyDuration := 10
+		global keyWait := 20
+	} else if (macroSpeed >= 20 && macroSpeed < 30) {
+		global keyDuration := 30
+		global keyWait := 40
+	} else if (macroSpeed >= 30 && macroSpeed < 40) {
+		global keyDuration := 50
+		global keyWait := 50
+	} else {
+		global keyDuration := 75
+		global keyWait := 75
+	}
+	IniWrite, %waitMultiplier%, settings.ini, settings, waitMultiplier
+	IniWrite, %keyDuration%, settings.ini, settings, keyDuration
+	IniWrite, %keyWait%, settings.ini, settings, keyWait
+	SB_SetText("Set Macro Speed to " macroSpeed)
+	OutputDebug, % "Speed Calc: Multiplier " waitMultiplier ", Duration " keyDuration ", Buffer " keyWait
+}
+
 GUISaver() {
 	Gui, Submit, Nohide
 	if (A_GuiControl = "moveFiles") {
@@ -788,6 +822,7 @@ MultiplayerToggler() {
 		Guicontrol, Hide, SnQ
 		GuiControl, Show, settings2
 		GuiControl, Show, SnQ2
+		GuiControl, Move, tipText, y666
 		for key, value in (multiplayerVisible_Array) {
 			GuiControl, Show, %value%
 		}
@@ -799,6 +834,7 @@ MultiplayerToggler() {
 		Guicontrol, Hide, SnQ2
 		GuiControl, Show, settings
 		GuiControl, Show, SnQ
+		GuiControl, Move, tipText, y612
 	}
 	Gui, Main:Show, AutoSize, Terraria Reset Macro
 }
@@ -861,6 +897,37 @@ VersionToggler() {
 		}
 	}
 }
+
+AdvancedSpeedSettings:
+Gui, SpeedSettings:New, +OwnerMain
+Gui, Main:+Disabled
+Gui, -SysMenu
+
+Gui, Add, GroupBox, Section h120 w290 Center, Advanced Speed Settings:
+	Gui, Add, Text, xp+15 ys+18, Key Duration:
+	Gui, Add, Edit, w110 vkeyDuration gGUISaver Number, %keyDuration%
+	keyDuration_TT := "The time keys are held down for (in ms).`nIncrease if the macro is missing inputs."
+	keyDuration_SB := "Key Duration"
+	Gui, Add, Text, xp yp+26, Key Buffer:
+	Gui, Add, Edit, w110 vkeyWait gGUISaver Number, %keyWait%
+	keyWait_TT := "The time between key presses. (in ms)`nIncrease if the macro is missing inputs."
+	keyWait_SB := "Key Buffer"
+	Gui, Add, Text, xp+150 ys+18, Wait Multiplier:
+	Gui, Add, Edit, w110 vwaitMultiplier gGUISaver, %waitMultiplier%
+	waitMultiplier_TT := "Multiplies load wait time by this number.`nIncrease if the macro is continuing too fast."
+	waitMultiplier_SB := "Wait Multiplier"
+
+	Gui, Add, Button, xp yp+45 w110 h22 vsaveAdvancedSettings gCloseAdvancedSettings, Save
+
+	Gui, Add, Text,xs+10 ys+125, Note: Adjusting the speed slider will undo these settings.
+
+Gui, Show, AutoSize Center, Advanced Speed Settings
+Return
+
+CloseAdvancedSettings:
+Gui, Main:-Disabled
+Gui, SpeedSettings:Submit
+Return
 
 Settings:
 Gui, Settings:New, +OwnerMain
