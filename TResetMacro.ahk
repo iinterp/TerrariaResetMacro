@@ -1446,6 +1446,19 @@ if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
 	FileDelete, %terrariaDir%/servers.dat
 }
 
+GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
+
+if (winHeight = "1620") {
+	OutputDebug, % "1620"
+	global 1p3ClickArray := [6.35,4.9,7.78,1.75,6.95,6,1.83,1.03,4.98,5.4,4.76,4.15,4.5,2.36,6.75,5.68,6.48]
+} else if (winHeight = "1440") {
+	OutputDebug, % "1440"
+	global 1p3ClickArray := [4.23,3.27,5.14,1.65,4.64,4,1.76,1.05,3.34,3.6,3.2,2.74,3,2.6,4.5,3.78,4.36]
+} else {
+	OutputDebug, % "else"
+	global 1p3ClickArray := [3.17,2.45,3.85,1.56,3.48,3,1.7,1.06,2.5,2.7,2.37,2.05,2.25,2.87,3.37,2.84,3.27]
+}
+
 reset%resetMode%(charName, worldName, charExist, worldExist)
 firstMacroLaunch := 0
 Return
@@ -1462,19 +1475,6 @@ resetMouse(charName, worldName, charExist, worldExist) {
 	worldName := StrReplace(worldName, "GLOBALRESETS", globalResets)
 	worldName := StrReplace(worldName, "PRESETRESETS", presetResets)
 	worldName := StrReplace(worldName, "SESSIONRESETS", sessionResets)
-
-	GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
-
-	if (winHeight = "1620") {
-		OutputDebug, % "1620"
-		1p3ClickArray := [6.35,4.9,7.78,1.75,6.95,6,1.83,1.03,4.98,5.4,4.76,4.15,4.5,2.36,6.75,5.68,6.48]
-	} else if (winHeight = "1440") {
-		OutputDebug, % "1440"
-		1p3ClickArray := [4.23,3.27,5.14,1.65,4.64,4,1.76,1.05,3.34,3.6,3.2,2.74,3,2.6,4.5,3.78,4.36]
-	} else {
-		OutputDebug, % "else"
-		1p3ClickArray := [3.17,2.45,3.85,1.56,3.48,3,1.7,1.06,2.5,2.7,2.37,2.05,2.25,2.87,3.37,2.84,3.27]
-	}
 
 	if (version != 4) { ;if 1.4+ use different version of the macro
 
@@ -1917,13 +1917,14 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		}
 		sendKey("space")
 		paste(worldName)
-		sendKey("enter", 1, 100)
-
-		if (worldSeed != "") {
-		paste(worldSeed)
-		}
-
 		sendKey("enter", 1, 150)
+
+		if (worldSeed) {
+			paste(worldSeed)
+			sendKey("enter", 1)
+		} else {
+			sendMouse(2, 1p3ClickArray[17])
+		}
 	}
 }
 paste(paste, times:=1, wait:="") {
