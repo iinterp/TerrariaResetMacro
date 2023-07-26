@@ -175,7 +175,7 @@ Gui, Main:New
 	Gui, Add, GroupBox, Center Section xs ys+130 w290 h75, Preset:
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
-		Gui, Add, Edit, x+m yp-2 w60 vversion gGUISaver, %version%
+		Gui, Add, DropDownList, x+m yp-2 w60 vversion gGUISaver choose%version% AltSubmit, 1.4.4|1.4.2|1.4|1.3
 		version_TT := "Terraria game version.`nVersions before 1.4.4 use a different version of the macro."
 		version_SB := "Version"
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
@@ -273,6 +273,8 @@ Try {
 	OutputDebug, % "Update could not be fetched."
 }
 }
+
+global guiCreated := 1
 
 skipMenuDirCheck:
 if (terrariaDir = "") {
@@ -434,7 +436,7 @@ LoadSettings() {
 	FileAppend, %presetResets%, resets/_currentresets.txt
 	FileDelete, resets/_category.txt
 	FileAppend, %presetName%, resets/_category.txt
-	
+
 	preset_ArrayString := preset_Array
 	preset_Array := StrSplit(preset_Array, "|")
 	OutputDebug, % "Preset: " presetName
@@ -508,6 +510,7 @@ SavePreset() {
 		if (preset_Array[index] = presetName) {
 			OutputDebug, % "Already saved " presetName
 			SB_SetText("Saved Preset " presetName)
+			LoadPreset()
 			Return
 		}
 	}
@@ -541,7 +544,7 @@ LoadPreset(fromTray:=0) {
 	for key, value in (preset_Array) {
 		if (presetName = value) {
 			OutputDebug, % "Setting preset to " presetName
-			Menu, PresetMenu, Check, %value%
+			Try Menu, PresetMenu, Check, %value%
 			for key, settingName in (categorySettings_Array) {
 				setting := %settingName%
 				IniRead, defaultSetting, settings.ini, defaults, %settingName%
@@ -556,14 +559,43 @@ LoadPreset(fromTray:=0) {
 			FileAppend, %presetResets%, resets/_currentresets.txt
 			FileDelete, resets/_category.txt
 			FileAppend, %presetName%, resets/_category.txt
-			if (fromTray != "tray") {
+			versionChecker()
+			if (fromTray != "tray" && guiCreated = 1) {
 			GUIInit()
 			}
 			SB_SetText("Set Preset to " presetName)
 		} else {
-			Menu, PresetMenu, Uncheck, %value%
+			Try Menu, PresetMenu, Uncheck, %value%
 		}
 	}
+}
+
+versionChecker() {
+	OutputDebug, % "versioncheck " version
+	if (version == 1 || version == 2 || version == 3 || version == 4) {
+		OutputDebug, % "version already: " %version%
+		IniWrite, %version%, settings.ini, %presetName%_Settings, version
+		return version
+	}
+	global version_array := StrSplit(version, ".")
+
+	if (version_array[2] >= 4 && version_array[3] >= 4) {
+		OutputDebug, % "version to use: 1.4.4"
+		version := 1
+	} else if (version_array[2] >= 4 && version_array[3] >= 2) {
+		OutputDebug, % "version to use: 1.4.2"
+		version := 2
+	} else if (version_array[2] >= 4) {
+		OutputDebug, % "version to use: 1.4"
+		version := 3
+	} else if (version_array[2] <= 3) {
+		OutputDebug, % "version to use: 1.3"
+		version := 4
+	} else {
+		version := 1
+	}
+	IniWrite, %version%, settings.ini, %presetName%_Settings, version
+	Return version
 }
 
 DeletePreset() {
@@ -731,9 +763,9 @@ GUIInit() {
 			}
 		}
 	}
+	GuiControl, Choose, version, %version%
 	GuiControl,, multiplayer, %multiplayer%
 	GuiControl,, IP, %IP%
-	GuiControl,, version, %version%
 	GuiControl,, charName, %charName%
 	GuiControl,, worldName, %worldName%
 	GuiControl,, worldSeed, %worldSeed%
@@ -771,9 +803,8 @@ MultiplayerToggler() {
 }
 
 VersionToggler() {
-	global version_array := StrSplit(version, ".")
 
-	if (version_array[2] <= 3 && version_array[2] != "") {
+	if (version = 4) { ;if 1.3, hide journey/master, disable paste
 		GuiControl, Hide, charDifficulty_Journey
 		GuiControl, Hide, worldDifficulty_Journey
 		GuiControl, Hide, worldDifficulty_Master
@@ -788,8 +819,6 @@ VersionToggler() {
 		GuiControl, Text, worldDifficulty_Classic, Normal
 		GuiControl, Text, worldDifficulty_Expert, Expert
 
-		OutputDebug, % "chard " charDifficulty
-
 		if (charDifficulty = "Journey") {
 			charDifficulty := "Classic"
 		}
@@ -799,7 +828,7 @@ VersionToggler() {
 		if (worldDifficulty = "Journey" || worldDifficulty = "Master") {
 			worldDifficulty := "Classic"
 		}
-	} else if (version_array[2] >= 4 && version_array[2] != "") {
+	} else if (version != 4) { ;not 1.3, show journey/master, enable paste
 		GuiControl, Show, charDifficulty_Journey
 		GuiControl, Show, worldDifficulty_Journey
 		GuiControl, Show, worldDifficulty_Master
@@ -1353,29 +1382,6 @@ updateChecker() {
 		Reload
 }
 
-versionChecker(version) {
-	OutputDebug, % "versioncheck " version
-	global version_array := StrSplit(version, ".")
-
-	if (version_array[2] >= 4 && version_array[3] >= 4) {
-		OutputDebug, % "version to use: 1.4.4"
-		return "1.4.4"
-	}
-	if (version_array[2] >= 4 && version_array[3] >= 2) {
-		OutputDebug, % "version to use: 1.4.2"
-		return "1.4.2"
-	}
-	if (version_array[2] >= 4) {
-		OutputDebug, % "version to use: 1.4"
-		return "1.4"
-	}
-	if (version_array[2] <= 3) {
-		OutputDebug, % "version to use: 1.3"
-		Return "1.3"
-	}
-
-	
-}
 
 
 
@@ -1393,8 +1399,6 @@ OutputDebug, % "Ran Hotkey label"
 if (autoClose = 1) {
 	SetTimer, AutoClose, 10000
 }
-
-global versionToUse := VersionChecker(version)
 
 if (!WinExist("ahk_exe terraria.exe")) {
 	if (runOnStart = 1 && disableSeasons = 1 && seasonalActive = 1) {
