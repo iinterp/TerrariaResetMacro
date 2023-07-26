@@ -1935,7 +1935,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 		if (worldSize = "Large") {
 			sendKey("space")
 		}
-		if (worldSize = "Medium" && version < "1.4.4")
+		if (worldSize = "Medium" && version >= 2)
 		{
 			sendKey("a")
 			sendKey("space")
@@ -1954,7 +1954,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 			sendKey("s")
 		}
 		sendKey("s") ;move to small
-		if (worldSize = "Small" && version >= "1.4.4") {
+		if (worldSize = "Small" && version = 1) {
 			sendKey("space") ;select small
 		}
 			if (worldDifficulty = "Journey" && charDifficulty = "Journey") {
