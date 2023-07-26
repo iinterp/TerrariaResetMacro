@@ -96,7 +96,7 @@ if (moveFiles = 2) {
 	IniWrite, %moveFiles%, settings.ini, settings, moveFiles
 }
 
-requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
+global requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
 fieldsGreaterThanOne := "waitMultiplier,keyDuration,keyWait,version"
 
 If (WinExist(terraria.exe)) {
@@ -805,7 +805,7 @@ MultiplayerToggler() {
 
 VersionToggler() {
 
-	if (version = 4) { ;if 1.3, hide journey/master, disable paste
+	if (version = 4) { ;if 1.3, hide journey/master keyboard, disable paste
 		GuiControl, Hide, charDifficulty_Journey
 		GuiControl, Hide, worldDifficulty_Journey
 		GuiControl, Hide, worldDifficulty_Master
@@ -819,6 +819,8 @@ VersionToggler() {
 		GuiControl, Move, worldDifficulty_Expert, w50 x+235
 		GuiControl, Text, worldDifficulty_Classic, Normal
 		GuiControl, Text, worldDifficulty_Expert, Expert
+
+		global requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName,worldName"
 
 		if (charDifficulty = "Journey") {
 			charDifficulty := "Classic"
@@ -843,6 +845,8 @@ VersionToggler() {
 		GuiControl, Text, worldDifficulty_Expert, E
 		GuiControl, Move, worldDifficulty_Classic, w20 x+205
 		GuiControl, Move, worldDifficulty_Expert, w20 x+235
+
+		global requiredFields := "resetKeybind,keyDuration,waitMultiplier,keyWait,charName,version,presetName"
 	}
 	for key, varArray in (gui_Arrays) {
 		varSplit := StrSplit(varArray, "_")
