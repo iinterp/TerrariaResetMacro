@@ -560,6 +560,7 @@ LoadPreset(fromTray:=0) {
 			FileDelete, resets/_category.txt
 			FileAppend, %presetName%, resets/_category.txt
 			versionChecker()
+			VersionToggler()
 			if (fromTray != "tray" && guiCreated = 1) {
 			GUIInit()
 			}
