@@ -1448,10 +1448,10 @@ if (multiplayer = 1 && multiplayerMethod = "Join" && clearServers = 1) {
 
 GetClientSize(WinExist(ahk_exe Terraria.exe), winWidth, winHeight)
 
-if (winHeight = "1620") {
+if (winHeight >= 1620) {
 	OutputDebug, % "1620"
 	global 1p3ClickArray := [6.35,4.9,7.78,1.75,6.95,6,1.83,1.03,4.98,5.4,4.76,4.15,4.5,2.36,6.75,5.68,6.48]
-} else if (winHeight = "1440") {
+} else if (winHeight >= 1440) {
 	OutputDebug, % "1440"
 	global 1p3ClickArray := [4.23,3.27,5.14,1.65,4.64,4,1.76,1.05,3.34,3.6,3.2,2.74,3,2.6,4.5,3.78,4.36]
 } else {
