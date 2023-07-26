@@ -90,6 +90,7 @@ if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 
 }
 
 sessionResets := 0
+guiCreated := 0
 
 LoadSettings()
 
@@ -140,8 +141,9 @@ if (showOnStart = 0) {
 }
 
 OpenConfig:
-if (firstLaunch = 0) {
+if (guiCreated = 1) {
 	LoadSettings()
+	Return
 }
 
 SetTimer, AutoClose, Off
@@ -265,12 +267,12 @@ Gui, Main:New
 	Gui, Add, Button, xs ys+66 w140 h40 vSnQ gSnQ Section, Save
 	Gui, Add, Button, xs ys w140 h40 vsettings2 gSettings, Settings
 	Gui, Add, Button, xs yp+54 w140 h40 vSnQ2 gSnQ, Save
+	
+	Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%macroVersion%
+	OnMessage(0x0200, "WM_MOUSEMOVE")
 
 GUIInit()
-
-Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%macroVersion%
-Gui, Show, AutoSize Center, Terraria Reset Macro
-OnMessage(0x0200, "WM_MOUSEMOVE")
+global guiCreated := 1
 
 if (checkedForUpdate != 1) {
 Try {
@@ -279,8 +281,6 @@ Try {
 	OutputDebug, % "Update could not be fetched."
 }
 }
-
-global guiCreated := 1
 
 skipMenuDirCheck:
 if (terrariaDir = "") {
@@ -1093,7 +1093,6 @@ for key, newSettingName in (categorySettings_Array) {
 }
 if (unsavedChanges != 1) {
 	Gui, Main:Submit
-	Gui, Main:Destroy
 	goto Hotkey
 	Return
 }
@@ -1133,7 +1132,6 @@ if (dontShowUnsavedPopup = 1) {
 	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
 }
 Gui, Main:Submit
-Gui, Main:Destroy
 goto Hotkey
 Return
 
@@ -1149,7 +1147,6 @@ if (dontShowUnsavedPopup = 1) {
 	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
 }
 Gui, Main:Submit
-Gui, Main:Destroy
 goto Hotkey
 Return
 
