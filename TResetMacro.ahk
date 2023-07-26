@@ -277,11 +277,13 @@ Gui, Main:New
 	Gui, Add, Button, xs ys w140 h40 vsettings2 gSettings, Settings
 	Gui, Add, Button, xs yp+54 w140 h40 vSnQ2 gSnQ, Save
 	
-	Gui, Add, StatusBar,vstatusBar, Terraria Reset Macro v%macroVersion%
+	Gui, Add, StatusBar,vstatusBar
 	OnMessage(0x0200, "WM_MOUSEMOVE")
 
 GUIInit()
 global guiCreated := 1
+
+Guicontrol,, statusBar, Terraria Reset Macro v%macroVersion%
 
 if (checkedForUpdate != 1) {
 	Try {
