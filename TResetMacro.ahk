@@ -652,11 +652,11 @@ DeletePreset() {
 SpeedCalc() {
 	global waitMultiplier := macroSpeed / 10
 	if (macroSpeed == 10) {
-		global keyDuration := 1
-		global keyWait := 1
+		global keyDuration := 10
+		global keyWait := 25
 	} else if (macroSpeed < 20) {
 		global keyDuration := 10
-		global keyWait := 20
+		global keyWait := 30
 	} else if (macroSpeed >= 20 && macroSpeed < 30) {
 		global keyDuration := 30
 		global keyWait := 40
@@ -667,6 +667,7 @@ SpeedCalc() {
 		global keyDuration := 75
 		global keyWait := 75
 	}
+	IniWrite, %macroSpeed%, settings.ini, settings, macroSpeed
 	IniWrite, %waitMultiplier%, settings.ini, settings, waitMultiplier
 	IniWrite, %keyDuration%, settings.ini, settings, keyDuration
 	IniWrite, %keyWait%, settings.ini, settings, keyWait
@@ -1571,10 +1572,10 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 		if (charExist != "") {
-		sendMouse(1.46, 2.88, 50) ;delete character
-		sendMouse(2, 2.5, 200) ;delete character
+		sendMouse(1.46, 2.88, 110) ;delete character
+		sendMouse(2, 2.5, 220) ;delete character
 		}
-		sendMouse(1.66, 1.08, 200) ;new character
+		sendMouse(1.66, 1.08, 220) ;new character
 
 			if (charDifficulty != "Classic" && version == 1) { ;classic is pre selected on 1.4.4
 			if (charDifficulty = "Journey") {
@@ -1597,16 +1598,16 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		if (charStyle != "Default") {
 			sendMouse(2.56, 3, 75) ;character style
 			if (charStyle = "Random") {
-				sendMouse(1.88, 1.95) ;random style
+				sendMouse(1.88, 1.95, 75) ;random style
 			} else {
 				clipboard := charStylePaste
-				sendMouse(2, 1.95) ;paste style
+				sendMouse(2, 1.95, 75) ;paste style
 			}
 		}
-		sendMouse(1.72, 1.7) ;create
-		paste(charName)
+		sendMouse(1.72, 1.7, 300) ;create
+		paste(charName, 1, 50)
 		sendKey("enter", 1, 150)
-		sendMouse(3.15, 2.88, 200) ;select character
+		sendMouse(3.15, 2.88, 250) ;select character
 		if (multiplayer = 1 && multiplayerMethod = "Join") {
 			sendKey("z", 1,, "^")
 			paste(IP)
@@ -1615,10 +1616,10 @@ resetMouse(charName, worldName, charExist, worldExist) {
 			return
 		}
 		if (worldExist != "") {
-		sendMouse(1.46, 2.9) ;delete world
-		sendMouse(2, 2.5, 200) ;delete world
+		sendMouse(1.46, 2.9, 50) ;delete world
+		sendMouse(2, 2.5, 150) ;delete world
 		}
-		sendMouse(1.66, 1.08, 200) ;new world
+		sendMouse(1.66, 1.08, 220) ;new world
 		if (worldEvil != "Random") { ;random is pre selected
 			if (worldEvil = "Corruption") {
 				sendMouse(2, 2.15) ;corruption
@@ -1648,17 +1649,16 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 		if (worldSeed != "") {
-		sendMouse(2, 3.25) ;world seed
+		sendMouse(2, 3.25, 150) ;world seed
 		paste(worldSeed)
-		sendKey("enter", 1, 125)
+		sendKey("enter", 1, 200)
 		}
 		if (worldName != "") {
-		sendMouse(2, 3.9) ;world name
-		paste(worldName)
+		sendMouse(2, 3.9, 315) ;world name
+		paste(worldName, 1, 50)
 		sendKey("enter", 1, 150)
 		}
 		sendMouse(1.72, 1.7) ;create
-		sendMouse(2, 2)
 	} else if (version == 4) { ; if version is 1.3- different version of the macro
 		if (multiplayer = 1) {
 			sendMouse(2, 1p3ClickArray[1])
