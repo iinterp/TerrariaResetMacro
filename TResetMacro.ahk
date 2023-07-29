@@ -192,7 +192,7 @@ Gui, Main:New
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, DropDownList, x+m yp-2 w60 vversion gGUISaver choose%version% AltSubmit, 1.4.4|1.4.2|1.4|1.3
-		version_TT := "Terraria game version.`nIncludes in-between versions, e.g. 1.4.2 includes 1.4.3.`nThis must be set to your game version"
+		version_TT := "Terraria version.`nIncludes in-between versions, e.g. 1.4.2 includes 1.4.3.`nThis must be set to your game version for the macro to work."
 		version_SB := "Version"
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
