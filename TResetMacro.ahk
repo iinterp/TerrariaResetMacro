@@ -1578,17 +1578,17 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		if (multiplayer = 1) {
 			sendMouse(2, multiplayerButtonY)
 			if (multiplayerMethod = "Host") {
-				sendMouse(2, 2.05, 220)
+				sendMouse(2, 2.05, 250)
 			} else {
-				sendMouse(2, 3.2, 220)
+				sendMouse(2, 3.2, 250)
 			}
 		} else {
-		sendMouse(2, singleplayerButtonY, 220) ;singleplayer
+		sendMouse(2, singleplayerButtonY, 250) ;singleplayer
 		}
 
 		if (charExist != "") {
-		sendMouse(1.46, 2.88, 110) ;delete character
-		sendMouse(2, 2.5, 220) ;delete character
+		sendMouse(1.46, 2.88, 50) ;delete character
+		sendMouse(2, 2.5, 150) ;delete character
 		}
 		sendMouse(1.66, 1.08, 220) ;new character
 
@@ -1611,9 +1611,9 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 		if (charStyle != "Default") {
-			sendMouse(2.56, 3, 75) ;character style
+			sendMouse(2.56, 3) ;character style
 			if (charStyle = "Random") {
-				sendMouse(1.88, 1.95, 75) ;random style
+				sendMouse(1.88, 1.95) ;random style
 			} else {
 				oldClipboard := clipboard
 				clipboard := charStylePaste
@@ -1621,10 +1621,10 @@ resetMouse(charName, worldName, charExist, worldExist) {
 				clipboard := oldClipboard
 			}
 		}
-		sendMouse(1.72, 1.7, 300) ;create
-		paste(charName, 1, 50)
-		sendKey("enter", 1, 150)
-		sendMouse(3.15, 2.88, 250) ;select character
+		sendMouse(1.72, 1.7) ;create
+		paste(charName)
+		sendKey("enter", 1, 175)
+		sendMouse(3.15, 2.88, 275) ;select character
 		if (multiplayer = 1 && multiplayerMethod = "Join") {
 			sendKey("z", 1,, "^")
 			paste(IP)
@@ -1636,7 +1636,7 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		sendMouse(1.46, 2.9, 50) ;delete world
 		sendMouse(2, 2.5, 150) ;delete world
 		}
-		sendMouse(1.66, 1.08, 220) ;new world
+		sendMouse(1.66, 1.08, 250) ;new world
 		if (worldEvil != "Random") { ;random is pre selected
 			if (worldEvil = "Corruption") {
 				sendMouse(2, 2.15) ;corruption
@@ -1666,14 +1666,14 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 		if (worldSeed != "") {
-		sendMouse(2, 3.25, 150) ;world seed
+		sendMouse(2, 3.25) ;world seed
 		paste(worldSeed)
-		sendKey("enter", 1, 200)
+		sendKey("enter", 1, 175)
 		}
 		if (worldName != "") {
-		sendMouse(2, 3.9, 315) ;world name
-		paste(worldName, 1, 50)
-		sendKey("enter", 1, 150)
+		sendMouse(2, 3.9) ;world name
+		paste(worldName)
+		sendKey("enter", 1, 175)
 		}
 		sendMouse(1.72, 1.7) ;create
 	} else if (version == 4) { ; if version is 1.3- different version of the macro
@@ -1817,9 +1817,9 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 
 	if (multiplayer = 1) {
 		sendKey("s") ;move to multiplayer
-		sendKey("space")
+		sendKey("space", 1, 50)
 		if (multiplayerMethod = "Host") {
-			sendKey("s",2)
+			sendKey("s", 2)
 		}
 	} else {
 		sendKey("w") ;move to single player
@@ -1869,7 +1869,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 				sendKey("d")
 			} 
 			if (charStyle != "Default") {
-				sendKey("space")
+				sendKey("space", 1, 100)
 				sendKey("s", 2)
 			}
 			if (charStyle = "Random") {
