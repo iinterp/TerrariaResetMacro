@@ -404,33 +404,6 @@ GuiControl,, showOnStart, %showOnStart%
 Gui, Submit, Nohide
 Return
 
-;TrayLoadPreset(presetToLoad) {
-;	presetName := presetToLoad
-;	Gui, Main:Submit, Nohide
-;	for key, value in (preset_Array) {
-;		if (presetName = value) {
-;			for key, settingName in (categorySettings_Array) {
-;				setting := %settingName%
-;				IniRead, defaultSetting, settings.ini, defaults, %settingName%
-;				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
-;				if (setting = "ERROR") {
-;					setting := ""
-;				}
-;				%settingName% := setting
-;			}
-;			IniWrite, %presetName%, settings.ini, settings, presetName
-;		}
-;	}
-;	for key, value in (preset_Array) {
-;		if (presetName = value) {
-;			Menu, PresetMenu, Check, %value%
-;		} else {
-;			Menu, PresetMenu, Uncheck, %value%
-;		}
-;	}
-;	LoadPreset("tray")
-;}
-
 LoadSettings() {
 	OutputDebug, % "Loading settings..."
 	IniRead, presetName, settings.ini, settings, presetName, Default
