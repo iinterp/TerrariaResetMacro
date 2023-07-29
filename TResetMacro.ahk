@@ -88,8 +88,10 @@ if (!FileExist(settings.ini)) {
 if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 1231) {
 	global seasonalActive := 1
 }
-
+FileDelete, resets/_sessionresets.txt
 sessionResets := 0
+FileAppend, %sessionResets%, resets/_sessionresets.txt
+
 guiCreated := 0
 
 LoadSettings()
@@ -447,8 +449,6 @@ LoadSettings() {
 		FileAppend, %presetResets%, resets/%presetName%_resets.txt
 	}
 	
-	FileDelete, resets/_sessionresets.txt
-	FileAppend, %sessionResets%, resets/_sessionresets.txt
 	FileDelete, resets/_currentresets.txt
 	FileAppend, %presetResets%, resets/_currentresets.txt
 	FileDelete, resets/_category.txt
