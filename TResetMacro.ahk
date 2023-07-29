@@ -1116,7 +1116,6 @@ if (dontShowUnsavedPopup = "Load") {
 
 SaveUnsaved:
 Gui, Main:-Disabled
-Gui, Submit
 SavePreset()
 unsavedChanges := 0
 if (dontShowUnsavedPopup = 1) {
