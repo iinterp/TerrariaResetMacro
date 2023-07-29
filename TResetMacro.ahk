@@ -2016,23 +2016,16 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	}
 }
 paste(paste, times:=1, wait:="") {
-	oldClipboard := ClipboardAll
 	if (wait != "") {
-	keyWaitOld := keyWait
-	keyWait := wait * waitMultiplier
+	wait := wait * waitMultiplier
+	} else {
+		wait := keyWait
 	}
 	loop, %times% {
-		clipboard := paste
-		send, ^{v down}
-		sleep, %keyDuration%
-		send, ^{v up}
-		sleep, %keyWait%
+		SendInput, %paste%
+		Sleep, 25
+		Sleep, %wait%
 	}
-	if (wait != "") {
-		keyWait := keyWaitOld
-	}
-	Clipboard := oldClipboard
-	oldClipboard := ""
 }
 sendKey(key, times:=1, wait:="", modifier:="") {
 	if (wait != "") {
