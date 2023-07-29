@@ -1615,8 +1615,10 @@ resetMouse(charName, worldName, charExist, worldExist) {
 			if (charStyle = "Random") {
 				sendMouse(1.88, 1.95, 75) ;random style
 			} else {
+				oldClipboard := clipboard
 				clipboard := charStylePaste
-				sendMouse(2, 1.95, 75) ;paste style
+				sendMouse(2, 1.95) ;paste style
+				clipboard := oldClipboard
 			}
 		}
 		sendMouse(1.72, 1.7, 300) ;create
