@@ -1777,9 +1777,9 @@ sendMouse(X, Y, wait:="") {
 		wait := keyWait
 	}
 	MouseMove, %X%, %Y%, 0
-	Send, {click down}
+	SendInput, {click down}
 	Sleep, %keyDuration%
-	Send, {click up}
+	SendInput, {click up}
 	Sleep, %wait%
 }
 
