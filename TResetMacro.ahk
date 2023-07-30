@@ -185,7 +185,7 @@ Gui, Main:New
 		resetKeybind_SB := "Reset Hotkey"
 		Gui, Add, Text, vfasterText yp, Faster
 		Gui, Add, Text, vslowerText yp, Slower
-		Gui, Add, Slider, Range10-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w191, %macroSpeed%
+		Gui, Add, Slider, Range5-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w191, %macroSpeed%
 		macroSpeed_TT := "The speed the macro resets at.`nSlow this down if you are having issues."
 		Gui, Add, Button, vadvancedButton gAdvancedSpeedSettings xp+225 yp+29 w15 h15, +
 		advancedButton_TT := "Advanced Speed Settings"
@@ -635,11 +635,14 @@ DeletePreset() {
 
 SpeedCalc() {
 	global waitMultiplier := macroSpeed / 10
-	if (macroSpeed == 10) {
+	if (macroSpeed < 8) {
+		global keyDuration := 1
+		global keyWait := 1
+	} else if (macroSpeed < 10) {
 		global keyDuration := 10
 		global keyWait := 25
 	} else if (macroSpeed < 20) {
-		global keyDuration := 10
+		global keyDuration := 15
 		global keyWait := 30
 	} else if (macroSpeed >= 20 && macroSpeed < 30) {
 		global keyDuration := 30
