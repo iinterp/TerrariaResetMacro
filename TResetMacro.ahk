@@ -1125,6 +1125,7 @@ if (dontShowUnsavedPopup = 1) {
 	dontShowUnsavedPopup := "Save"
 	IniWrite, %dontShowUnsavedPopup%, settings.ini, settings, dontShowUnsavedPopup
 }
+Gui, UnsavedChanges:Submit
 Gui, Main:Submit
 goto Hotkey
 Return
