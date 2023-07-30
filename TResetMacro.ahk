@@ -1,5 +1,5 @@
 SetWorkingDir %A_ScriptDir%
-global macroVersion := "1.3.0"
+global macroVersion := "1.3.1"
 author := "interp"
 
 if (A_ScriptName = "TerrariaResetMacro.exe") {
@@ -88,8 +88,10 @@ if (!FileExist(settings.ini)) {
 if (A_MM A_DD >= 1010 && A_MM A_DD <= 1101 || A_MM A_DD >= 1215 && A_MM A_DD <= 1231) {
 	global seasonalActive := 1
 }
-
+FileDelete, resets/_sessionresets.txt
 sessionResets := 0
+FileAppend, %sessionResets%, resets/_sessionresets.txt
+
 guiCreated := 0
 
 LoadSettings()
@@ -178,12 +180,12 @@ Gui, Main:New
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h90, Macro Settings
 		Gui, Add, Text, xs+15 ys+18 vhotkeyText, Hotkey:
-		Gui, Add, Hotkey, w212 x+m yp vresetKeybind gGUISaver, %resetKeybind%
+		Gui, Add, Hotkey, w167 x+m yp vresetKeybind gGUISaver, %resetKeybind%
 		resetKeybind_TT := "The hotkey to press to activate the macro."
 		resetKeybind_SB := "Reset Hotkey"
 		Gui, Add, Text, vfasterText yp, Faster
 		Gui, Add, Text, vslowerText yp, Slower
-		Gui, Add, Slider, Range10-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w190, %macroSpeed%
+		Gui, Add, Slider, Range5-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w191, %macroSpeed%
 		macroSpeed_TT := "The speed the macro resets at.`nSlow this down if you are having issues."
 		Gui, Add, Button, vadvancedButton gAdvancedSpeedSettings xp+225 yp+29 w15 h15, +
 		advancedButton_TT := "Advanced Speed Settings"
@@ -192,7 +194,7 @@ Gui, Main:New
 		Gui, Add, ComboBox, xs+15 yp+18 vpresetName gLoadPreset w260, %preset_ArrayString%
 		Gui, Add, Text, xp yp+28, Version:
 		Gui, Add, DropDownList, x+m yp-2 w60 vversion gGUISaver choose%version% AltSubmit, 1.4.4|1.4.2|1.4|1.3
-		version_TT := "Terraria game version.`nIncludes in-between versions, e.g. 1.4.2 includes 1.4.3.`nThis must be set to your game version"
+		version_TT := "Terraria version.`nIncludes in-between versions, e.g. 1.4.2 includes 1.4.3.`nThis must be set to your game version for the macro to work."
 		version_SB := "Version"
 		Gui, Add, Button, xp+100 yp w50 vdeletePreset gDeletePreset, Delete
 		Gui, Add, Button, x+m yp w50 vsavePreset gSavePreset, Save
@@ -402,33 +404,6 @@ GuiControl,, showOnStart, %showOnStart%
 Gui, Submit, Nohide
 Return
 
-;TrayLoadPreset(presetToLoad) {
-;	presetName := presetToLoad
-;	Gui, Main:Submit, Nohide
-;	for key, value in (preset_Array) {
-;		if (presetName = value) {
-;			for key, settingName in (categorySettings_Array) {
-;				setting := %settingName%
-;				IniRead, defaultSetting, settings.ini, defaults, %settingName%
-;				IniRead, %settingName%, settings.ini, %presetName%_Settings, %settingName%, %defaultSetting%
-;				if (setting = "ERROR") {
-;					setting := ""
-;				}
-;				%settingName% := setting
-;			}
-;			IniWrite, %presetName%, settings.ini, settings, presetName
-;		}
-;	}
-;	for key, value in (preset_Array) {
-;		if (presetName = value) {
-;			Menu, PresetMenu, Check, %value%
-;		} else {
-;			Menu, PresetMenu, Uncheck, %value%
-;		}
-;	}
-;	LoadPreset("tray")
-;}
-
 LoadSettings() {
 	OutputDebug, % "Loading settings..."
 	IniRead, presetName, settings.ini, settings, presetName, Default
@@ -447,8 +422,6 @@ LoadSettings() {
 		FileAppend, %presetResets%, resets/%presetName%_resets.txt
 	}
 	
-	FileDelete, resets/_sessionresets.txt
-	FileAppend, %sessionResets%, resets/_sessionresets.txt
 	FileDelete, resets/_currentresets.txt
 	FileAppend, %presetResets%, resets/_currentresets.txt
 	FileDelete, resets/_category.txt
@@ -662,11 +635,14 @@ DeletePreset() {
 
 SpeedCalc() {
 	global waitMultiplier := macroSpeed / 10
-	if (macroSpeed == 10) {
+	if (macroSpeed < 8) {
+		global keyDuration := 1
+		global keyWait := 1
+	} else if (macroSpeed < 10) {
 		global keyDuration := 10
 		global keyWait := 25
 	} else if (macroSpeed < 20) {
-		global keyDuration := 10
+		global keyDuration := 15
 		global keyWait := 30
 	} else if (macroSpeed >= 20 && macroSpeed < 30) {
 		global keyDuration := 30
@@ -1143,7 +1119,6 @@ if (dontShowUnsavedPopup = "Load") {
 
 SaveUnsaved:
 Gui, Main:-Disabled
-Gui, Submit
 SavePreset()
 unsavedChanges := 0
 if (dontShowUnsavedPopup = 1) {
@@ -1578,17 +1553,17 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		if (multiplayer = 1) {
 			sendMouse(2, multiplayerButtonY)
 			if (multiplayerMethod = "Host") {
-				sendMouse(2, 2.05, 220)
+				sendMouse(2, 2.05, 250)
 			} else {
-				sendMouse(2, 3.2, 220)
+				sendMouse(2, 3.2, 250)
 			}
 		} else {
-		sendMouse(2, singleplayerButtonY, 220) ;singleplayer
+		sendMouse(2, singleplayerButtonY, 250) ;singleplayer
 		}
 
 		if (charExist != "") {
-		sendMouse(1.46, 2.88, 110) ;delete character
-		sendMouse(2, 2.5, 220) ;delete character
+		sendMouse(1.46, 2.88, 50) ;delete character
+		sendMouse(2, 2.5, 150) ;delete character
 		}
 		sendMouse(1.66, 1.08, 220) ;new character
 
@@ -1611,18 +1586,20 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 		if (charStyle != "Default") {
-			sendMouse(2.56, 3, 75) ;character style
+			sendMouse(2.56, 3) ;character style
 			if (charStyle = "Random") {
-				sendMouse(1.88, 1.95, 75) ;random style
+				sendMouse(1.88, 1.95) ;random style
 			} else {
+				oldClipboard := clipboard
 				clipboard := charStylePaste
-				sendMouse(2, 1.95, 75) ;paste style
+				sendMouse(2, 1.95) ;paste style
+				clipboard := oldClipboard
 			}
 		}
-		sendMouse(1.72, 1.7, 300) ;create
-		paste(charName, 1, 50)
-		sendKey("enter", 1, 150)
-		sendMouse(3.15, 2.88, 250) ;select character
+		sendMouse(1.72, 1.7) ;create
+		paste(charName)
+		sendKey("enter", 1, 175)
+		sendMouse(3.15, 2.88, 275) ;select character
 		if (multiplayer = 1 && multiplayerMethod = "Join") {
 			sendKey("z", 1,, "^")
 			paste(IP)
@@ -1634,7 +1611,7 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		sendMouse(1.46, 2.9, 50) ;delete world
 		sendMouse(2, 2.5, 150) ;delete world
 		}
-		sendMouse(1.66, 1.08, 220) ;new world
+		sendMouse(1.66, 1.08, 250) ;new world
 		if (worldEvil != "Random") { ;random is pre selected
 			if (worldEvil = "Corruption") {
 				sendMouse(2, 2.15) ;corruption
@@ -1664,14 +1641,14 @@ resetMouse(charName, worldName, charExist, worldExist) {
 		}
 
 		if (worldSeed != "") {
-		sendMouse(2, 3.25, 150) ;world seed
+		sendMouse(2, 3.25) ;world seed
 		paste(worldSeed)
-		sendKey("enter", 1, 200)
+		sendKey("enter", 1, 175)
 		}
 		if (worldName != "") {
-		sendMouse(2, 3.9, 315) ;world name
-		paste(worldName, 1, 50)
-		sendKey("enter", 1, 150)
+		sendMouse(2, 3.9) ;world name
+		paste(worldName)
+		sendKey("enter", 1, 175)
 		}
 		sendMouse(1.72, 1.7) ;create
 	} else if (version == 4) { ; if version is 1.3- different version of the macro
@@ -1775,9 +1752,9 @@ sendMouse(X, Y, wait:="") {
 		wait := keyWait
 	}
 	MouseMove, %X%, %Y%, 0
-	Send, {click down}
+	SendInput, {click down}
 	Sleep, %keyDuration%
-	Send, {click up}
+	SendInput, {click up}
 	Sleep, %wait%
 }
 
@@ -1815,9 +1792,9 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 
 	if (multiplayer = 1) {
 		sendKey("s") ;move to multiplayer
-		sendKey("space")
+		sendKey("space", 1, 50)
 		if (multiplayerMethod = "Host") {
-			sendKey("s",2)
+			sendKey("s", 2)
 		}
 	} else {
 		sendKey("w") ;move to single player
@@ -1867,7 +1844,7 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 				sendKey("d")
 			} 
 			if (charStyle != "Default") {
-				sendKey("space")
+				sendKey("space", 1, 100)
 				sendKey("s", 2)
 			}
 			if (charStyle = "Random") {
@@ -2014,23 +1991,16 @@ ResetKeyboard(charName, worldName, charExist, worldExist) {
 	}
 }
 paste(paste, times:=1, wait:="") {
-	oldClipboard := ClipboardAll
 	if (wait != "") {
-	keyWaitOld := keyWait
-	keyWait := wait * waitMultiplier
+	wait := wait * waitMultiplier
+	} else {
+		wait := keyWait
 	}
 	loop, %times% {
-		clipboard := paste
-		send, ^{v down}
-		sleep, %keyDuration%
-		send, ^{v up}
-		sleep, %keyWait%
+		SendInput, %paste%
+		Sleep, 25
+		Sleep, %wait%
 	}
-	if (wait != "") {
-		keyWait := keyWaitOld
-	}
-	Clipboard := oldClipboard
-	oldClipboard := ""
 }
 sendKey(key, times:=1, wait:="", modifier:="") {
 	if (wait != "") {
