@@ -180,12 +180,12 @@ Gui, Main:New
 
 	Gui, Add, GroupBox, xs ys+70 Section Center w290 h90, Macro Settings
 		Gui, Add, Text, xs+15 ys+18 vhotkeyText, Hotkey:
-		Gui, Add, Hotkey, w212 x+m yp vresetKeybind gGUISaver, %resetKeybind%
+		Gui, Add, Hotkey, w167 x+m yp vresetKeybind gGUISaver, %resetKeybind%
 		resetKeybind_TT := "The hotkey to press to activate the macro."
 		resetKeybind_SB := "Reset Hotkey"
 		Gui, Add, Text, vfasterText yp, Faster
 		Gui, Add, Text, vslowerText yp, Slower
-		Gui, Add, Slider, Range10-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w190, %macroSpeed%
+		Gui, Add, Slider, Range10-40 TickInterval5 Center Buddy1fasterText Buddy2slowerText xp-12 yp+27 vmacroSpeed gSpeedCalc w191, %macroSpeed%
 		macroSpeed_TT := "The speed the macro resets at.`nSlow this down if you are having issues."
 		Gui, Add, Button, vadvancedButton gAdvancedSpeedSettings xp+225 yp+29 w15 h15, +
 		advancedButton_TT := "Advanced Speed Settings"
